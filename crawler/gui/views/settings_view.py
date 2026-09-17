@@ -1,6 +1,6 @@
 # coding:utf-8
 """
-设置视图：token、保存位置、下载参数。
+设置视图：token、保存位置、下载参数、关于与更新。
 
 为什么这些从「流程的某一步」搬到独立页面：
 token 是一个会话凭证，抓一次能用很久；保存目录和清晰度更是设一次就不动了。
@@ -12,6 +12,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (QCheckBox, QGridLayout, QHBoxLayout, QLineEdit,
                              QVBoxLayout, QWidget)
 
+from ...version import VERSION
 from .. import theme as T
 from .. import widgets as W
 from .base import Workspace
@@ -70,6 +71,7 @@ class SettingsView(Workspace):
     pick_dir = pyqtSignal()
     open_dir = pyqtSignal()
     changed = pyqtSignal()
+    check_update = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__('设置', '这些设置会记住，下次打开不用再填。', parent)
@@ -155,6 +157,29 @@ class SettingsView(Workspace):
             card3.box.addWidget(chk)
         self.box.addWidget(card3)
 
+        # ---------------- 关于与更新
+        card4 = W.Card(padding=(22, 18, 22, 18), gap=9)
+        head4 = QHBoxLayout()
+        head4.setContentsMargins(0, 0, 0, 0)
+        head4.setSpacing(10)
+        head4.addWidget(W.card_title('关于与更新'))
+        head4.addStretch(1)
+        head4.addWidget(W.Badge('当前 %s' % VERSION, 'info'))
+        card4.box.addLayout(head4)
+        card4.box.addWidget(W.body(
+            '发现新版本时可以直接在这里下载并安装，装完自动重新打开，'
+            '不需要去发布页面手动下载。', T.TEXT_DIM))
+        urow = QHBoxLayout()
+        urow.setContentsMargins(0, 0, 0, 0)
+        urow.setSpacing(10)
+        self.btn_update = W.PillButton('检查更新', 'secondary', small=True)
+        urow.addWidget(self.btn_update)
+        self.update_hint = W.meta('', T.TEXT_FAINT)
+        urow.addWidget(self.update_hint)
+        urow.addStretch(1)
+        card4.box.addLayout(urow)
+        self.box.addWidget(card4)
+
         # ---------------- 保存
         frow = QHBoxLayout()
         frow.setContentsMargins(0, 0, 0, 0)
@@ -173,6 +198,7 @@ class SettingsView(Workspace):
         self.btn_open.clicked.connect(self.open_dir.emit)
         self.btn_verify.clicked.connect(
             lambda: self.verify_requested.emit(self.token.edit.text().strip()))
+        self.btn_update.clicked.connect(self.check_update.emit)
         for w in (self.token.edit, self.dir_edit, self.row_workers.edit,
                   self.row_quality.edit):
             w.textChanged.connect(self._touch)
@@ -229,3 +255,15 @@ class SettingsView(Workspace):
 
     def mark_saved(self):
         self.saved_hint.setText('已保存')
+
+    # -------------------------------------------------------------- 更新
+    def set_update_busy(self, busy):
+        self.btn_update.setEnabled(not busy)
+        self.btn_update.setText('检查中…' if busy else '检查更新')
+        if busy:
+            self.update_hint.setText('正在检查…')
+            self.update_hint.set_color(T.TEXT_FAINT)
+
+    def set_update_status(self, text, color=None):
+        self.update_hint.setText(text or '')
+        self.update_hint.set_color(color or T.TEXT_FAINT)

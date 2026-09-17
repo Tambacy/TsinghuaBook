@@ -92,6 +92,7 @@ class Sidebar(QWidget):
 
     nav = pyqtSignal(str)
     logout_requested = pyqtSignal()
+    update_clicked = pyqtSignal()
 
     def __init__(self, parent=None, variant='violet'):
         super().__init__(parent)
@@ -146,6 +147,11 @@ class Sidebar(QWidget):
         box.addWidget(nav_wrap, 1)
 
         # ---- 底部状态：token 有没有配、当前在不在跑
+        # 更新提示平时是隐藏的，只有真发现新版本才显形 —— 常驻一条
+        # 「已是最新」只会占地方。
+        self.update_chip = W.SideChip(self)
+        self.update_chip.setVisible(False)
+        self.update_chip.clicked.connect(self.update_clicked.emit)
         self.status_chip = W.SideChip(self)
         self.btn_logout = W.PillButton('退出登录', 'ghost', self, small=True)
         self.btn_logout.clicked.connect(self.logout_requested.emit)
@@ -153,6 +159,7 @@ class Sidebar(QWidget):
         foot_box = QVBoxLayout(foot)
         foot_box.setContentsMargins(12, 0, 12, 14)
         foot_box.setSpacing(8)
+        foot_box.addWidget(self.update_chip)
         foot_box.addWidget(self.status_chip)
         foot_box.addWidget(self.btn_logout)
         box.addWidget(foot)
@@ -168,6 +175,17 @@ class Sidebar(QWidget):
 
     def set_token_state(self, ok, text=''):
         self.status_chip.set_state(ok, text)
+
+    def show_update(self, version):
+        """发现新版本：在侧边栏亮一条，点它就在应用内更新。"""
+        self.update_chip.set_state(
+            True, '点这里直接更新', title='有新版本 %s' % version, tone='info')
+        self.update_chip.setToolTip('当前 %s，最新 %s' % (T.RELEASE_VERSION, version))
+        self.update_chip.setVisible(True)
+
+    def hide_update(self):
+        self.update_chip.setVisible(False)
+        self.update_chip.setToolTip('')
 
     def set_token_expiry(self, state, text='', account=None):
         """

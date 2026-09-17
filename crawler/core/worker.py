@@ -13,6 +13,7 @@ import traceback
 from PyQt6.QtCore import QObject, QThread, QTimer, pyqtSignal
 
 from . import engine
+from . import updater
 
 
 class _BaseWorker(QObject):
@@ -138,6 +139,54 @@ class DownloadWorker(_BaseWorker):
         except Exception as e:                                    # noqa: BLE001
             self.stage_changed.emit('error', '出错了')
             self.failed.emit(str(e), traceback.format_exc())
+
+
+class UpdateCheckWorker(_BaseWorker):
+    """
+    查有没有新版本。只打一个接口，但仍然放到线程里 —— 网络不通时
+    requests 会卡到超时，放主线程就是整个界面僵住十几秒。
+    """
+
+    done = pyqtSignal(object)          # Release；已经是最新时是 None
+
+    def run(self):
+        try:
+            rel = updater.check()
+        except updater.UpdateError as e:
+            # 网络问题不是「出错」，是可预期的情况，不带堆栈
+            self.failed.emit(str(e), '')
+            return
+        except Exception as e:                                    # noqa: BLE001
+            self.failed.emit(str(e), traceback.format_exc())
+            return
+        if self.cancel.is_set():
+            return
+        self.done.emit(rel)
+
+
+class UpdateDownloadWorker(_BaseWorker):
+    """把安装包下到临时目录，按字节推进度。"""
+
+    push_progress = pyqtSignal(int, int)   # (已下字节, 总字节；0 = 服务器没给长度)
+    finished_ok = pyqtSignal(str)          # 本地安装包路径
+
+    def __init__(self, release):
+        super().__init__()
+        self.release = release
+
+    def run(self):
+        try:
+            path = updater.download(
+                self.release,
+                on_progress=lambda d, t: self.push_progress.emit(d, t),
+                cancel=self.cancel)
+        except updater.UpdateError as e:
+            self.failed.emit(str(e), '')
+            return
+        except Exception as e:                                    # noqa: BLE001
+            self.failed.emit(str(e), traceback.format_exc())
+            return
+        self.finished_ok.emit(path)
 
 
 class TaskRunner(QObject):

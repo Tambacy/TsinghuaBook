@@ -82,6 +82,9 @@ DEFAULT_SETTINGS = {
     'login_mode': 'sso',       # 'sso' = 统一身份认证 / 'token' = 直接填 Token
     'auto_refresh': True,      # 统一身份认证模式下，Token 失效自动重新获取
     'last_login_at': 0,        # 上次登录成功的时间戳
+    # 更新检查
+    'last_update_check': 0,    # 上次检查更新的时间戳，避免每次启动都打接口
+    'skip_version': '',        # 用户点过「跳过此版本」的版本号
 }
 
 

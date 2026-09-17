@@ -296,6 +296,10 @@ class Label(QLabel):
             self.setWordWrap(True)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
 
+    def set_color(self, color):
+        """换文字颜色（状态从「检查中」变「失败」之类），不用重建控件。"""
+        self.setStyleSheet('color:%s;background:transparent;' % _css(color))
+
 
 def _css(color):
     """令牌 -> Qt 样式表颜色。支持 '#RRGGBB'、QColor、(r,g,b,a) 元组。"""
@@ -644,23 +648,35 @@ class SideChip(QWidget):
 
     clicked = pyqtSignal()
 
+    # 三种语义。以前只有「绿=好 / 黄=要注意」，更新提示是中性信息，
+    # 套绿色会被读成「成功了」，所以补一个品牌紫的 info。
+    _TONES = {
+        'ok':   (T.ACCENT_LIGHT, T.ACCENT),
+        'warn': (T.WARN_LIGHT, T.WARN),
+        'info': (T.PRIMARY_LIGHT, T.PRIMARY),
+    }
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self._ok = False
+        self._tone = 'warn'
         self._title = '未设置 token'
         self._sub = '下载前需要先抓一个'
         self.setFixedHeight(46)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
-    def set_state(self, ok, sub='', title=None):
+    def set_state(self, ok, sub='', title=None, tone=None):
         """
         title 给了就用它（比如显示当前账号名），没给就按 ok 出默认文案。
 
         默认文案两边几乎一样（"token 有效" / "可以开始下载"），是因为以前
         这里只有「有没有 token」一个信息。现在有效期能算出来了，
         调用方会把剩余时间放进 sub，两行才各说一件事。
+
+        tone 不传就按 ok 推：有效=绿、无效=黄。更新提示会显式传 'info'。
         """
         self._ok = bool(ok)
+        self._tone = tone or ('ok' if ok else 'warn')
         self._title = title or ('token 有效' if ok else '未设置 token')
         self._sub = sub or ('可以开始下载' if ok else '点这里去设置')
         self.update()
@@ -676,12 +692,11 @@ class SideChip(QWidget):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         r = QRectF(self.rect()).adjusted(0.5, 0.5, -0.5, -0.5)
-        bg = QColor(T.ACCENT_LIGHT) if self._ok else QColor(T.WARN_LIGHT)
+        bg, dot = self._TONES.get(self._tone, self._TONES['warn'])
         p.setPen(Qt.PenStyle.NoPen)
-        p.setBrush(bg)
+        p.setBrush(QColor(bg))
         p.drawRoundedRect(r, T.R_IN, T.R_IN)
 
-        dot = T.ACCENT if self._ok else T.WARN
         p.setBrush(QColor(dot))
         p.drawEllipse(QPointF(r.left() + 15, r.center().y()), 3.6, 3.6)
 

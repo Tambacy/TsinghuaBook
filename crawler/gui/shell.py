@@ -18,13 +18,15 @@ from PyQt6.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QMessageBox
                              QStackedWidget, QVBoxLayout, QWidget)
 
 from ..core import store, tokeninfo
+from ..core import updater
 from ..core.queue import QueueManager
-from ..core.worker import TaskRunner, CredCheckWorker
+from ..core.worker import TaskRunner, CredCheckWorker, UpdateCheckWorker
 from . import theme as T
 from . import widgets as W
 from .login import LoginScreen
 from .sidebar import Sidebar
 from .titlebar import TitleBar
+from .update_dialog import UpdateDialog, open_installer
 from .views.help_view import HelpView
 from .views.library_view import LibraryView
 from .views.queue_view import QueueView
@@ -162,6 +164,18 @@ class MainWindow(QWidget):
         self._token_timer.setInterval(30 * 1000)
         self._token_timer.timeout.connect(self._sync_token_chip)
 
+        # 更新检查
+        self._update = None            # 发现了新版本时存 Release
+        self._update_runner = None
+        self._update_manual = False    # 这次检查是不是用户手点的
+        self._update_dialog = None
+        # 启动后隔几秒再查：别和登录、书库扫描抢那几秒，
+        # 反正这个提示早几秒晚几秒都不影响用户手上正在干的事
+        self._update_timer = QTimer(self)
+        self._update_timer.setSingleShot(True)
+        self._update_timer.setInterval(4000)
+        self._update_timer.timeout.connect(lambda: self._check_update(manual=False))
+
         self._build()
         self._wire()
 
@@ -173,6 +187,131 @@ class MainWindow(QWidget):
         # 首次启动直接落在队列页；如果书库里有书但队列空着，说明是老用户，
         # 那也不改，避免「上次看哪这次还看哪」这种猜测
         self.goto('queue', animate=False)
+        self._schedule_update_check()
+
+    # ================================================================ 更新
+    def _schedule_update_check(self):
+        """
+        隔一段时间查一次，不是每次启动都查。
+
+        GitHub 接口没鉴权时每小时只给 60 次，而且国内直连经常不通；
+        每次启动都打一遍既没必要也容易被限流。跳过此版本的也直接不查了。
+        """
+        if os.environ.get('TSINGHUA_CRAWLER_NO_UPDATE_CHECK'):
+            return
+        last = self.settings.get('last_update_check') or 0
+        try:
+            last = float(last)
+        except (TypeError, ValueError):
+            last = 0
+        if time.time() - last < 12 * 3600:
+            return
+        self._update_timer.start()
+
+    def _check_update(self, manual=False):
+        """查更新。manual=True 表示用户点的，结果要回显到设置页。"""
+        if self._update_runner is not None and self._update_runner.running:
+            return
+        self._update_manual = bool(manual)
+        if manual:
+            self.settings_view.set_update_busy(True)
+
+        w = UpdateCheckWorker()
+        w.done.connect(self._on_update_checked)
+        w.failed.connect(self._on_update_failed)
+        self._update_runner = TaskRunner(w, self)
+        self._update_runner.start()
+
+    def _on_update_checked(self, rel):
+        self._finish_update_runner()
+        self.settings.set('last_update_check', int(time.time()))
+        self.settings.save()
+
+        if rel is None:
+            self._update = None
+            self.sidebar.hide_update()
+            if self._update_manual:
+                self.settings_view.set_update_busy(False)
+                self.settings_view.set_update_status(
+                    '已是最新版本 %s' % T.RELEASE_VERSION, T.ACCENT)
+            return
+
+        self._update = rel
+        skipped = (self.settings.get('skip_version') or '').strip()
+        if rel.version == skipped:
+            # 用户说过这个版本先不装，就别再拿侧边栏烦他；
+            # 但设置页里手动检查还是要如实告诉他
+            self.sidebar.hide_update()
+            if self._update_manual:
+                self.settings_view.set_update_busy(False)
+                self.settings_view.set_update_status(
+                    '有新版本 %s（已跳过）' % rel.version, T.WARN)
+            return
+
+        self.sidebar.show_update(rel.version)
+        if self._update_manual:
+            self.settings_view.set_update_busy(False)
+            self.settings_view.set_update_status(
+                '发现新版本 %s' % rel.version, T.PRIMARY)
+            self._open_update()
+
+    def _on_update_failed(self, msg, _detail=''):
+        self._finish_update_runner()
+        # 自动检查失败不打扰用户：断网、被墙都是常事，功能本身不受影响
+        self.sidebar.hide_update()
+        if self._update_manual:
+            self.settings_view.set_update_busy(False)
+            self.settings_view.set_update_status('检查失败：%s' % msg, T.DANGER)
+
+    def _finish_update_runner(self):
+        if self._update_runner is not None:
+            self._update_runner.finish()
+            self._update_runner = None
+
+    def _open_update(self):
+        if self._update is None:
+            return
+        # 用 open() 而不是 exec()：exec() 会在这里开一个嵌套事件循环，
+        # 而本方法是从信号回调里进来的（用户点按钮 / 检查线程回来），
+        # 在回调里开嵌套循环是重入 bug 的温床。open() 一样是模态的，
+        # 但立刻返回。引用挂在 self 上，免得被 GC 掉。
+        if self._update_dialog is not None:
+            self._update_dialog.raise_()
+            self._update_dialog.activateWindow()
+            return
+        dlg = UpdateDialog(self._update, self)
+        dlg.skip_requested.connect(self._skip_version)
+        dlg.install_requested.connect(self._install_update)
+        dlg.finished.connect(self._on_update_dialog_closed)
+        self._update_dialog = dlg
+        dlg.open()
+
+    def _on_update_dialog_closed(self, _result):
+        self._update_dialog = None
+
+    def _skip_version(self, version):
+        self.settings.set('skip_version', version)
+        self.settings.save()
+        self.sidebar.hide_update()
+        self.settings_view.set_update_status('已跳过 %s' % version, T.TEXT_FAINT)
+
+    def _install_update(self, path):
+        """
+        启动安装包并退出本程序。装完由安装包的收尾命令把程序重新拉起来。
+
+        这里必须真的退出：安装包要覆盖的正是当前这个 exe，
+        程序不放手的话 Inno 会卡在「请关闭以下程序」那一步。
+        """
+        if not open_installer(path, on_error=self._on_install_error):
+            return
+        self._log('正在安装更新，程序即将关闭 ...', 'ok')
+        QTimer.singleShot(200, QApplication.quit)
+
+    def _on_install_error(self, msg):
+        QMessageBox.warning(self, APP_NAME,
+                            '无法启动安装程序：%s\n\n'
+                            '安装包还在这里，可以手动运行：\n%s'
+                            % (msg, updater.dest_dir()))
 
     # ================================================================ 构建
     def _build(self):
@@ -235,6 +374,7 @@ class MainWindow(QWidget):
         self.sidebar.nav.connect(self.goto)
         self.sidebar.status_chip.clicked.connect(lambda: self.goto('settings'))
         self.sidebar.logout_requested.connect(self._logout)
+        self.sidebar.update_chip.clicked.connect(self._open_update)
         self.login.logged_in.connect(self._on_logged_in)
         self.login.mode_changed.connect(self._on_login_mode_changed)
 
@@ -260,6 +400,7 @@ class MainWindow(QWidget):
         sv.pick_dir.connect(self._pick_dir)
         sv.open_dir.connect(self._open_save_dir)
         sv.changed.connect(lambda: sv.clear_verify())
+        sv.check_update.connect(lambda: self._check_update(manual=True))
 
     # ================================================================ 窗口外壳
     def _apply_round_corners(self):

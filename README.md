@@ -17,6 +17,7 @@
 - [第一次使用](#第一次使用)
 - [界面](#界面)
 - [日常使用](#日常使用)
+- [更新](#更新)
 - [常见问题](#常见问题)
 - [数据存在哪、怎么彻底删掉](#数据存在哪怎么彻底删掉)
 - [卸载](#卸载)
@@ -29,7 +30,7 @@
 ## 安装
 
 1. 到本仓库的 [Releases](../../releases) 页面下载最新安装包
-   **`TsinghuaBookCrawler-2.0-Setup.exe`**（约 133 MB）。
+   **`TsinghuaBookCrawler-2.1-Setup.exe`**（约 133 MB）。
 2. 双击运行，一路"下一步"。
 3. 装完从开始菜单或桌面快捷方式启动。
 
@@ -143,6 +144,26 @@ https://ereserves.lib.tsinghua.edu.cn/bookDetail/c01e1db1...
 3. **去书库拿 PDF** —— 下完自动入库。
 
 程序支持**断点续传**：关掉再打开、或者中途停止，已经下好的页面都不会重复下载。
+
+---
+
+## 更新
+
+程序会自己检查有没有新版本，**不用去 Releases 页面手动下载**。
+
+- 发现新版本时，侧边栏左下角会出现一条提示，点它就能看到更新说明。
+- 点「下载并安装」会在程序里直接下载安装包（有进度条），下完点「立即安装并重启」，
+  程序会关闭、静默安装、然后自动重新打开。
+- 也可以在**设置 → 关于与更新**里手动点「检查更新」。
+- 不想装这个版本就点「跳过此版本」，之后不会再为它弹提示；想装了再手动检查一次即可。
+
+几点说明：
+
+- 检查更新是**在后台悄悄做的**，启动后几秒才发起，而且 **12 小时最多查一次**。
+  查不到（比如网络连不上 GitHub）只会安静地什么都不显示，不影响下载功能。
+- 安装包下到系统临时目录，装完就没用了，可以随手清掉。
+- 装到一半失败也不影响当前版本：安装包走的是标准 Inno Setup 流程，
+  出问题时原来的程序还在，重开即可。
 
 ---
 
@@ -281,7 +302,8 @@ python cli.py "https://ereserves.lib.tsinghua.edu.cn/bookDetail/c01e1db1..." --t
 
 | 版本 | 说明 |
 | --- | --- |
-| **桌面版 2.0** | 当前发布版。修复下载完成时崩溃、下载线程越界操作界面、文件夹改名后显示「文件已丢失」三个问题。 |
+| **桌面版 2.1** | 当前发布版。新增应用内更新：发现新版本会在侧边栏提示，可直接在程序里下载并安装。 |
+| 桌面版 2.0 | 修复下载完成时崩溃、下载线程越界操作界面、文件夹改名后显示「文件已丢失」三个问题。 |
 | 桌面版 1.0 | 全部推倒重写成 PyQt6 桌面应用：图形界面、内嵌浏览器登录、批量队列、书库、安装包。 |
 
 ### 上游脚本（原作者 [lflame](https://github.com/lflame) 的 `TsinghuaBookCrawler`）
@@ -429,7 +451,7 @@ venv\Scripts\pip install -r requirements.txt PyQt6 PyQt6-WebEngine pyinstaller
 :: 1) 打包成 onedir 目录  -> dist\TsinghuaBookCrawler\
 venv\Scripts\pyinstaller --noconfirm --clean TsinghuaBookCrawler.spec
 
-:: 2) 打包成安装包        -> dist\TsinghuaBookCrawler-2.0-Setup.exe
+:: 2) 打包成安装包        -> dist\TsinghuaBookCrawler-2.1-Setup.exe
 ::    ISCC 的位置看装在哪（非管理员安装会落在 localappdata）：
 ::      C:\Program Files (x86)\Inno Setup 6\ISCC.exe
 ::      %LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe
@@ -572,10 +594,14 @@ venv\Scripts\python tests\test_worker.py          # 后台线程
 venv\Scripts\python tests\test_gui_integration.py # 界面集成全链路
 venv\Scripts\python tests\test_queue_threading.py # 下载线程不碰控件 + 状态字类型
 venv\Scripts\python tests\test_relocate.py        # 文件夹改名后重新定位
+venv\Scripts\python tests\test_updater.py         # 版本比较 / 更新检查 / 下载完整性
 venv\Scripts\python tests\smoke_window.py         # 四视图渲染与几何断言
+venv\Scripts\python tests\smoke_update.py         # 更新提示与更新对话框状态机
 venv\Scripts\python tests\smoke_login.py          # 登录页与 profile 轮换
 venv\Scripts\python tests\test_tokeninfo.py       # Token 解析
 venv\Scripts\python tools\measure_pages.py        # 各页内容高度
+venv\Scripts\python tools\check_version.py        # 版本号一致性（离线）
+venv\Scripts\python tools\check_update.py         # 真实联网查一次更新
 venv\Scripts\python tools\check_fade_opaque.py    # 化开区不透明与接缝
 venv\Scripts\python tools\check_sky_edges.py      # 四条边（需桌面会话）
 ```
