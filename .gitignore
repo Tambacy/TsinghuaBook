@@ -1,0 +1,36 @@
+# 虚拟环境
+venv/
+.venv/
+env/
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# 编辑器
+*~
+*.swp
+.idea/
+.vscode/
+
+# 打包与构建产物
+build/
+dist/
+*.spec.bak
+
+# 下载的电子书（有版权，绝不进仓库）
+downloads/
+download/
+
+# 测试与验收的临时渲染输出
+_smoke/
+_cfgtest/
+
+# 本机工具留下的暂存
+.dsh/
+
+# 系统
+Thumbs.db
+desktop.ini
+.DS_Store
