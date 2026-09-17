@@ -40,7 +40,7 @@ PrivilegesRequiredOverridesAllowed=dialog
 
 OutputDir=dist
 OutputBaseFilename={#MyAppNameEn}-{#MyAppVersion}-Setup
-SetupIconFile=xk_app\assets\app.ico
+SetupIconFile=crawler\assets\app.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 UninstallDisplayName={#MyAppName} {#MyAppVersion}
 

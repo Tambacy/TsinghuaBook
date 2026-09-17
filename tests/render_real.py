@@ -28,9 +28,9 @@ def main():
     from PyQt6.QtWidgets import QApplication
 
     app = QApplication(sys.argv)
-    from xk_app.app.core import store
-    from xk_app.app.gui import theme as T
-    from xk_app.app.gui.shell import MainWindow
+    from crawler.core import store
+    from crawler.gui import theme as T
+    from crawler.gui.shell import MainWindow
 
     win = MainWindow()
     win.resize(T.WIN_W, T.WIN_H)

@@ -12,9 +12,9 @@ isolate()
 
 from PyQt6.QtWidgets import QApplication  # noqa: E402
 
-from xk_app.app.core import store  # noqa: E402
-from xk_app.app.gui import theme as T  # noqa: E402
-from xk_app.app.gui.shell import MainWindow  # noqa: E402
+from crawler.core import store  # noqa: E402
+from crawler.gui import theme as T  # noqa: E402
+from crawler.gui.shell import MainWindow  # noqa: E402
 
 
 def seg(o):

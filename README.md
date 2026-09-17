@@ -220,17 +220,23 @@ PDF 被手动删掉或移动了。记录还在，点回收站图标可以清掉�
 
 ## 命令行方式（可选）
 
-不想用图形界面也可以走命令行。需要先装 Python（3.7–3.13 都行）：
+不想用图形界面也可以走命令行。装好程序之后直接调 exe 即可：
+
+```
+TsinghuaBookCrawler.exe -h
+```
+
+也可以从源码跑（需要先装 Python 3.10+）：
 
 ```
 pip install -r requirements.txt
-python main.py -h
+python cli.py -h
 ```
 
 基本用法：
 
 ```
-python main.py "https://ereserves.lib.tsinghua.edu.cn/bookDetail/c01e1db1..." --token eyJhb...
+python cli.py "https://ereserves.lib.tsinghua.edu.cn/bookDetail/c01e1db1..." --token eyJhb...
 ```
 
 | 参数 | 说明 |
@@ -354,35 +360,62 @@ python main.py "https://ereserves.lib.tsinghua.edu.cn/bookDetail/c01e1db1..." --
 
 ## 源码结构
 
+仓库根只放入口和构建配置，代码全在 `crawler/` 包内：
+
 ```
-main.py                     命令行入口
-launcher.py                 打包版入口（带 --selftest / --screenshot）
+gui.py                      开发态：启动图形界面
+cli.py                      开发态：走命令行
+launcher.py                 打包入口（exe 的四种用法都由它分发）
 TsinghuaBookCrawler.spec    PyInstaller onedir 打包配置
 installer.iss               Inno Setup 安装包脚本
 
-xk_app/
-  main.py                   图形界面入口
+crawler/
+  entry.py                  模式分发：图形界面 / 命令行 / 自检 / 截图
   selftest.py               打包产物自检（66 项）
-  app/
-    core/                   与界面无关的核心逻辑
-      engine.py             教参平台 API：解析书籍 / 章节 / 页图
-      queue.py              下载队列：编排、断点、重试、Token 续期
-      store.py              设置与书库的持久化
-      worker.py             后台线程
-      tokeninfo.py          解析 Token，算剩余寿命
-      cli.py                命令行参数
-    gui/
-      theme.py              设计令牌（颜色/字号/间距/动效）唯一来源
-      shell.py              主窗口：页面切换、nativeEvent、退出流程
-      titlebar.py           自绘标题栏 + 命中测试
-      sidebar.py            左侧导航
-      login.py              登录页（内嵌浏览器 / Token 两种模式）
-      backdrop.py           天幕与化开区（自绘，无图片依赖）
-      widgets.py            通用控件
-      covers.py             书库封面生成
-      views/                四个页面
+  screenshot.py             把六个界面渲染成 PNG（验收用）
+  core/                     与界面无关的核心逻辑
+    engine.py               教参平台 API：解析书籍 / 章节 / 页图
+    queue.py                下载队列：编排、断点、重试、Token 续期
+    store.py                设置与书库的持久化
+    worker.py               后台线程
+    tokeninfo.py            解析 Token，算剩余寿命
+    cli.py                  命令行参数
+  gui/
+    theme.py                设计令牌（颜色/字号/间距/动效）唯一来源
+    shell.py                主窗口：页面切换、nativeEvent、退出流程
+    titlebar.py             自绘标题栏 + 命中测试
+    sidebar.py              左侧导航
+    login.py                登录页（内嵌浏览器 / Token 两种模式）
+    backdrop.py             天幕与化开区（自绘，无图片依赖）
+    widgets.py              通用控件
+    covers.py               书库封面生成
+    views/                  四个页面
+  legacy/                   上游脚本版的原始实现，仅命令行模式仍在用
   assets/                   图标与底图
+
+tests/                      测试与界面冒烟
+tools/                      守卫脚本（边缘、对比度、设计语言…）与出图工具
+example/                    README 里用到的界面截图
 ```
+
+### 三个入口的关系
+
+`gui.py` / `cli.py` / `launcher.py` 都是薄壳，真正的分发在 `crawler/entry.py`，
+保证「源码直接跑」和「打包后跑」走的是同一条路。
+
+`launcher.py` 必须留在包外面：PyInstaller 会把入口脚本当作顶层 `__main__` 执行，
+脚本里的相对导入会报 `attempted relative import with no known parent package`。
+
+### `crawler/legacy/` 是什么
+
+原作者 lflame 脚本版里的 `auth_get` / `download_imgs` / `hhhimg2pdf` / `utils`，
+是 ereserves 新接口那一版的实现。图形界面走的是 `crawler/core` 里的重写版，
+**不依赖它们**；但命令行模式（`cli.py <url> --token xxx`）至今仍调用它们，
+所以收进包里保留，而不是删掉。要彻底去掉，需要把 `core/cli.py` 移植到
+`core` 的实现上。
+
+收进包之前它们在仓库根，靠「仓库根刚好在 sys.path 上」才 import 得到，
+冻结后还得靠一段兜底代码再挂一次 `sys.path`；现在是普通相对导入。
 
 ## 从源码构建
 
@@ -503,7 +536,7 @@ Win11 上还会调 `DwmSetWindowAttribute(DWMWA_WINDOW_CORNER_PREFERENCE)` 让�
 
 ### 应用图标
 
-`tools/make_icon.py` 用 PIL 现画，输出 `xk_app/assets/app.ico`（10 档尺寸）和界面内用的
+`tools/make_icon.py` 用 PIL 现画，输出 `crawler/assets/app.ico`（10 档尺寸）和界面内用的
 `logo*.png`。造型是一本白色的书加一个向下的箭头。
 
 关键在**每个尺寸单独画**，分三档：`>=64` 完整（书脊 + 两条正文线 + 箭头）、

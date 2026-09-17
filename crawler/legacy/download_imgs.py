@@ -8,7 +8,7 @@ import requests
 from multiprocessing.pool import Pool
 from multiprocessing import Value
 from urllib.parse import urljoin, quote
-from auth_get import auth_get
+from .auth_get import auth_get
 
 
 terminate_flag = Value('b', False)

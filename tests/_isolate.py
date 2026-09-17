@@ -6,14 +6,14 @@
 %LOCALAPPDATA%\\TsinghuaBookCrawler。任何一个脚本忘了隔离，就会往用户
 真实的书库里塞测试数据 —— 这发生过了，所以现在统一走这里。
 
-用法：在任何 xk_app 导入之前，第一件事就调 isolate()。
+用法：在任何 crawler 导入之前，第一件事就调 isolate()。
 """
 import atexit
 import os
 import shutil
 import tempfile
 
-from xk_app.app.core.store import DATA_DIR_ENV
+from crawler.core.store import DATA_DIR_ENV
 
 _ISOLATED = None
 
@@ -42,7 +42,7 @@ def isolate(webengine=False):
 
 def assert_isolated():
     """自检：确认现在的配置目录确实在临时目录里。"""
-    from xk_app.app.core import store
+    from crawler.core import store
     real = store.data_dir()
     tmp = os.path.normcase(tempfile.gettempdir())
     if not os.path.normcase(real).startswith(tmp):

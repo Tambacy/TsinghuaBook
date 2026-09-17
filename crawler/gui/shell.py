@@ -43,18 +43,30 @@ _NATIVE_ERRORS = []
 
 
 def app_base_dir():
+    """
+    程序「自己的目录」：打包后是 exe 所在目录，开发态是仓库根。
+
+    开发态要从 crawler/gui/shell.py 往上数三层才到仓库根（gui → crawler → 仓库根）。
+    """
     if getattr(sys, 'frozen', False):
         return os.path.dirname(sys.executable)
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 
 def resource_path(*parts):
+    """
+    取打包进来的资源（assets/ 下的图标、底图、封面）。
+
+    冻结态：资源在 sys._MEIPASS 下（spec 里 datas 把 crawler/assets 映射成 assets）。
+    开发态：从本文件往上两层到仓库根，再拼 parts —— 即 crawler/gui/shell.py
+    → crawler/ → 仓库根，所以是 crawler/assets/...。
+    """
     base = getattr(sys, '_MEIPASS', None)
     if base:
         return os.path.join(base, *parts)
     here = os.path.abspath(__file__)
-    xk_app_dir = os.path.dirname(os.path.dirname(os.path.dirname(here)))
-    return os.path.join(xk_app_dir, *parts)
+    repo_root = os.path.dirname(os.path.dirname(os.path.dirname(here)))
+    return os.path.join(repo_root, 'crawler', *parts)
 
 
 def _open_path(path):

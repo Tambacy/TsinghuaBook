@@ -30,7 +30,7 @@ from PyQt6.QtCore import QPoint, QRect, Qt  # noqa: E402
 from PyQt6.QtGui import QImage  # noqa: E402
 from PyQt6.QtWidgets import QApplication, QLabel  # noqa: E402
 
-from xk_app.app.gui import theme as T  # noqa: E402
+from crawler.gui import theme as T  # noqa: E402
 
 # 登录页左栏在 1920 物理宽下量到的逻辑尺寸
 BRAND_W, BRAND_H = 527, 822
@@ -161,7 +161,7 @@ def main():
     ok = True
 
     print('=== 登录页左栏（%dx%d）===' % (BRAND_W, BRAND_H))
-    from xk_app.app.gui.login import BrandPanel
+    from crawler.gui.login import BrandPanel
     bp = BrandPanel()
     bp.resize(BRAND_W, BRAND_H)
     bp.show()
@@ -174,7 +174,7 @@ def main():
 
     print()
     print('=== 侧边栏天幕（%dx%d）===' % (T.SIDEBAR_W, T.SKY_PANEL_H))
-    from xk_app.app.gui.sidebar import Sidebar
+    from crawler.gui.sidebar import Sidebar
     sb = Sidebar()
     sb.resize(T.SIDEBAR_W, 700)
     sb.show()
@@ -195,7 +195,7 @@ def main():
             print('   - ' + f)
     else:
         print('CONTRAST OK  白字全都压得住')
-    from xk_app.app.gui import backdrop as BD
+    from crawler.gui import backdrop as BD
     print('  左栏主视觉: %s' % (BD._find_asset('login_hero') or '（无，退回 backdrop）'))
     print('  侧栏底图  : %s' % (BD._find_backdrop() or '（无，用程序化天幕）'))
     return 0 if ok else 1

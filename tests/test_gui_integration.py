@@ -27,7 +27,7 @@ from PyQt6.QtCore import QEventLoop, QTimer  # noqa: E402
 from PyQt6.QtWidgets import QApplication  # noqa: E402
 
 from tests.test_engine import build_fakes, patch  # noqa: E402
-from xk_app.app.gui import theme as T  # noqa: E402
+from crawler.gui import theme as T  # noqa: E402
 
 TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.abcdefghij'
 
@@ -79,7 +79,7 @@ def main():
         fg, fp, sg, sp = build_fakes(state)
         patch(fg, fp, sg, sp)
 
-        from xk_app.app.gui.shell import MainWindow
+        from crawler.gui.shell import MainWindow
         save_dir = os.path.join(tmp, 'downloads')
 
         win = MainWindow()
@@ -100,7 +100,7 @@ def main():
         check(win.settings_view.saved_hint.text() == '已保存', '界面提示「已保存」')
 
         # 设置必须真的落盘，重启后不用再填
-        from xk_app.app.core import store
+        from crawler.core import store
         check(store.Settings().get('token') == TOKEN, '设置已写入磁盘')
 
         print('[B] 队列：粘两条链接', flush=True)
@@ -289,7 +289,7 @@ def main():
 
         # 没有 token 时点开始，应当被拦住并跳到设置。
         # 这里必须把弹窗换掉：QMessageBox.information 是模态的，会把测试挂住。
-        from xk_app.app.gui import shell as shell_mod
+        from crawler.gui import shell as shell_mod
         shown = []
         real_info = shell_mod.QMessageBox.information
         shell_mod.QMessageBox.information = staticmethod(
@@ -336,7 +336,7 @@ def main():
         import base64
         import json as _json
         import time as _time
-        from xk_app.app.core import tokeninfo as ti
+        from crawler.core import tokeninfo as ti
 
         def jwt(exp_offset):
             def seg(o):
@@ -581,7 +581,7 @@ def main():
         from PyQt6.QtCore import QEvent, QPointF, Qt
         from PyQt6.QtGui import QMouseEvent
 
-        from xk_app.app.gui import widgets as W
+        from crawler.gui import widgets as W
 
         win12 = MainWindow()
         win12.resize(T.WIN_W, T.WIN_H)
@@ -654,7 +654,7 @@ def main():
         # （见 backdrop.SkyBackdrop.__init__），这条路就走不到了。
         # 所以要按 _find_asset 屏蔽 —— 只屏蔽 _find_backdrop 的话，登录页
         # 仍然会拿到 login_hero，回退路径还是走不到。
-        from xk_app.app.gui import backdrop as BD
+        from crawler.gui import backdrop as BD
         _orig_find = BD._find_asset
         BD._find_asset = lambda stem: None
         win13 = MainWindow()
@@ -688,7 +688,7 @@ def main():
         check(not sky13._timer.isActive(), '登录页不可见时不空转')
 
         print('\n[T] 天幕帧率', flush=True)
-        from xk_app.app.gui import backdrop as BD
+        from crawler.gui import backdrop as BD
         check(BD.SKY_TICK_MS >= 30,
               '天幕自己的刷新间隔是 %dms（不跟 15ms 的全局动效走）'
               % BD.SKY_TICK_MS)

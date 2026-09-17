@@ -21,10 +21,10 @@ isolate(webengine=True)
 
 from PyQt6.QtWidgets import QApplication  # noqa: E402
 
-from xk_app.app.core import store  # noqa: E402
-from xk_app.app.gui import backdrop as B  # noqa: E402
-from xk_app.app.gui import login as L  # noqa: E402
-from xk_app.app.gui import theme as T  # noqa: E402
+from crawler.core import store  # noqa: E402
+from crawler.gui import backdrop as B  # noqa: E402
+from crawler.gui import login as L  # noqa: E402
+from crawler.gui import theme as T  # noqa: E402
 
 L.PLATFORM_HOME = 'about:blank'
 app = QApplication(sys.argv)

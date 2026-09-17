@@ -25,7 +25,7 @@ _CFG = isolate()
 import requests  # noqa: E402
 from PIL import Image  # noqa: E402
 
-from xk_app.app.core import engine  # noqa: E402
+from crawler.core import engine  # noqa: E402
 
 CHAPTERS = 3
 PAGES_PER_CHAPTER = 4
@@ -170,8 +170,8 @@ def main():
         # 具名返回 + 这条断言把这类错位挡在门口。
         import re as _re
         root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        callers = ('xk_app/app/core/queue.py', 'xk_app/app/core/cli.py',
-                   'xk_app/app/core/worker.py', 'xk_app/app/core/engine.py')
+        callers = ('crawler/core/queue.py', 'crawler/core/cli.py',
+                   'crawler/core/worker.py', 'crawler/core/engine.py')
         bad = []
         for rel in callers:
             with open(os.path.join(root, rel), 'r', encoding='utf-8') as fh:

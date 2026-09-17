@@ -1,7 +1,7 @@
 import sys
 import re
 from urllib.parse import urljoin
-from auth_get import auth_get
+from .auth_get import auth_get
 
 IMG_SUFFIXES = ['jpeg', 'jpg', 'png']
 

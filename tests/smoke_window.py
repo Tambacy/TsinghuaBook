@@ -27,9 +27,9 @@ def main():
 
 
 def _run(app):
-    from xk_app.app.core import store
-    from xk_app.app.gui import theme as T
-    from xk_app.app.gui.shell import MainWindow
+    from crawler.core import store
+    from crawler.gui import theme as T
+    from crawler.gui.shell import MainWindow
 
     out = os.path.join(_ROOT, '_smoke')
     os.makedirs(out, exist_ok=True)

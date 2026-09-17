@@ -3,7 +3,7 @@
 PyInstaller 打包配置。
 
 产物：dist/TsinghuaBookCrawler/TsinghuaBookCrawler.exe（onedir 目录模式）。
-图标和天幕资源从 xk_app/assets 打进去（运行时经 sys._MEIPASS 取）。
+图标和天幕资源从 crawler/assets 打进去（运行时经 sys._MEIPASS 取）。
 
 命令行版本仍然可用：
     TsinghuaBookCrawler.exe <url> --token xxx
@@ -37,7 +37,7 @@ a = Analysis(
     pathex=[ROOT],
     binaries=[],
     datas=[
-        (os.path.join(ROOT, 'xk_app', 'assets'), 'assets'),
+        (os.path.join(ROOT, 'crawler', 'assets'), 'assets'),
     ],
     hiddenimports=[
         'PyQt6.QtCore',
@@ -47,29 +47,29 @@ a = Analysis(
         # 登录页的内嵌浏览器。惰性 import，必须显式列出来
         'PyQt6.QtWebEngineCore',
         'PyQt6.QtWebEngineWidgets',
-        # 命令行模式的实现仍在仓库根目录，cli.py 里 import 它们 —— 显式列出来
-        'download_imgs',
-        'hhhimg2pdf',
-        'utils',
-        'auth_get',
-        'xk_app.app.core.cli',
+        # 命令行模式用的上游脚本版实现（crawler/legacy/），cli.py 里惰性 import
+        'crawler.legacy.auth_get',
+        'crawler.legacy.download_imgs',
+        'crawler.legacy.hhhimg2pdf',
+        'crawler.legacy.utils',
+        'crawler.core.cli',
         # 视图是按需 import 的，列出来免得被静态分析漏掉
-        'xk_app.app.gui.shell',
-        'xk_app.app.gui.login',
-        'xk_app.app.gui.views',
-        'xk_app.app.gui.views.base',
-        'xk_app.app.gui.views.queue_view',
-        'xk_app.app.gui.views.library_view',
-        'xk_app.app.gui.views.settings_view',
-        'xk_app.app.gui.views.help_view',
-        'xk_app.app.gui.icons',
-        'xk_app.app.gui.sidebar',
-        'xk_app.app.gui.backdrop',
-        'xk_app.app.gui.widgets',
-        'xk_app.app.core.store',
-        'xk_app.app.core.queue',
-        'xk_app.app.core.worker',
-        'xk_app.app.core.tokeninfo',
+        'crawler.gui.shell',
+        'crawler.gui.login',
+        'crawler.gui.views',
+        'crawler.gui.views.base',
+        'crawler.gui.views.queue_view',
+        'crawler.gui.views.library_view',
+        'crawler.gui.views.settings_view',
+        'crawler.gui.views.help_view',
+        'crawler.gui.icons',
+        'crawler.gui.sidebar',
+        'crawler.gui.backdrop',
+        'crawler.gui.widgets',
+        'crawler.core.store',
+        'crawler.core.queue',
+        'crawler.core.worker',
+        'crawler.core.tokeninfo',
     ],
     hookspath=[],
     hooksconfig={},
@@ -118,7 +118,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=os.path.join(ROOT, 'xk_app', 'assets', 'app.ico'),
+    icon=os.path.join(ROOT, 'crawler', 'assets', 'app.ico'),
 )
 
 coll = COLLECT(

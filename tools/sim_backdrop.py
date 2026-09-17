@@ -18,7 +18,7 @@ sys.path.insert(0, _ROOT)
 from tests._isolate import isolate  # noqa: E402
 isolate()
 
-from xk_app.app.gui import theme as T  # noqa: E402
+from crawler.gui import theme as T  # noqa: E402
 
 FONT = r'C:\Windows\Fonts\msyh.ttc'
 FONT_B = r'C:\Windows\Fonts\msyhbd.ttc'
@@ -84,7 +84,7 @@ def main():
         sheet.paste(big, (ox, oy))
         dd = ImageDraw.Draw(sheet)
         text(dd, (ox + 30, oy + int(LH * 0.115)), '清华教参下载器', f_title)
-        text(dd, (ox + 30, oy + int(LH * 0.115) + 52), 'v3.0 · 电子教材 PDF 下载工具',
+        text(dd, (ox + 30, oy + int(LH * 0.115) + 52), '电子教材 PDF 下载工具',
              f_sub, (232, 228, 245))
         for k, (t1, t2) in enumerate((('批量排队', '一次粘多条链接，一本一本下完'),
                                       ('书库管理', '封面、书名、页数，随时找回来'),
@@ -106,7 +106,7 @@ def main():
         dd2 = ImageDraw.Draw(sheet)
         text(dd2, (sx + SW // 2, oy + int(SH * 0.42)), '清华教参下载器',
              f_side, (255, 255, 255), anchor='mm')
-        text(dd2, (sx + SW // 2, oy + int(SH * 0.66)), 'v3.0 · 电子教材 PDF',
+        text(dd2, (sx + SW // 2, oy + int(SH * 0.66)), '电子教材 PDF',
              f_sidesub, (226, 222, 240), anchor='mm')
 
     out = os.path.join(_ROOT, '_smoke', 'gen', 'sim.png')

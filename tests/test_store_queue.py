@@ -22,7 +22,7 @@ _CFG = isolate()
 
 from tests.test_engine import build_fakes, patch  # noqa: E402
 
-from xk_app.app.core import engine, queue, store  # noqa: E402
+from crawler.core import engine, queue, store  # noqa: E402
 
 
 def wait_until(fn, timeout=30.0, interval=0.05):

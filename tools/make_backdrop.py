@@ -1,6 +1,6 @@
 # coding:utf-8
 """
-把生成出来的原图处理成可以发布的 xk_app/assets/backdrop.jpg。
+把生成出来的原图处理成可以发布的 crawler/assets/backdrop.jpg。
 
 原图放 tools/art/backdrop_src.jpg（不进安装包），只有产物进 assets/。
 分开是因为原图是「素材」，assets 里的是「成品」：素材留着是为了随时能换一版
@@ -31,7 +31,7 @@ from PIL import Image
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.dirname(_HERE)
 DEFAULT_SRC = os.path.join(_HERE, 'art', 'backdrop_src.jpg')
-DEFAULT_OUT = os.path.join(_ROOT, 'xk_app', 'assets', 'backdrop.jpg')
+DEFAULT_OUT = os.path.join(_ROOT, 'crawler', 'assets', 'backdrop.jpg')
 
 SIZE = 1920          # 够覆盖登录页左栏在 200% 缩放下的 1054x1644
 QUALITY = 88

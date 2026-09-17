@@ -977,7 +977,7 @@ class LoginScreen(QWidget):
 
 
 def main():                                                          # pragma: no cover
-    """单独预览登录页：python -m xk_app.app.gui.login"""
+    """单独预览登录页：python -m crawler.gui.login"""
     import sys
     from PyQt6.QtWidgets import QApplication
     QApplication.setHighDpiScaleFactorRoundingPolicy(

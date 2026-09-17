@@ -12,7 +12,7 @@
     python tools\\make_covers.py            # 只补缺的
     python tools\\make_covers.py --force    # 全部重出
 
-源图放 tools/art/（不进包），成品放 xk_app/assets/covers/（进包）。
+源图放 tools/art/（不进包），成品放 crawler/assets/covers/（进包）。
 """
 import argparse
 import os
@@ -25,7 +25,7 @@ sys.path.insert(0, _HERE)
 from gen_image import generate  # noqa: E402
 
 SRC_DIR = os.path.join(_HERE, 'art')
-OUT_DIR = os.path.join(_ROOT, 'xk_app', 'assets', 'covers')
+OUT_DIR = os.path.join(_ROOT, 'crawler', 'assets', 'covers')
 
 # 成品尺寸：3:4 竖版，卡面宽 132pt 时 3x 屏也够清楚
 OUT_W, OUT_H = 900, 1200

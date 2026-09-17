@@ -1,6 +1,6 @@
 # coding:utf-8
 """
-生成应用图标 xk_app/assets/app.ico（以及 app.png / logo*.png）。
+生成应用图标 crawler/assets/app.ico（以及 app.png / logo*.png）。
 
 为什么用脚本画、而且**每个尺寸单独画**：
   1. 把一张 256 的图硬缩到 16px，细节会糊成一团。真实图标集都是「光学尺寸」——
@@ -26,7 +26,7 @@ from PIL import Image, ImageDraw, ImageFilter
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.dirname(_HERE)
-OUT_DIR = os.path.join(_ROOT, 'xk_app', 'assets')
+OUT_DIR = os.path.join(_ROOT, 'crawler', 'assets')
 
 # ---------------------------------------------------------------- 品牌色
 TILE_TOP = (138, 120, 204)      # #8A78CC

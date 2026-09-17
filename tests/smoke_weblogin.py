@@ -76,9 +76,9 @@ def main():
     from PyQt6.QtWidgets import QApplication
 
     app = QApplication(sys.argv)
-    from xk_app.app.core import store
-    from xk_app.app.gui import login as L
-    from xk_app.app.gui import theme as T
+    from crawler.core import store
+    from crawler.gui import login as L
+    from crawler.gui import theme as T
 
     T.install_app_font(app)
 

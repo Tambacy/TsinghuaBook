@@ -26,9 +26,9 @@ _CFG = isolate()
 from PyQt6.QtCore import QPoint, Qt  # noqa: E402
 from PyQt6.QtWidgets import QApplication  # noqa: E402
 
-from xk_app.app.gui import theme as T  # noqa: E402
-from xk_app.app.gui import titlebar as TB  # noqa: E402
-from xk_app.app.gui.shell import MainWindow  # noqa: E402
+from crawler.gui import theme as T  # noqa: E402
+from crawler.gui import titlebar as TB  # noqa: E402
+from crawler.gui.shell import MainWindow  # noqa: E402
 
 _lines = []
 _fails = []
@@ -70,8 +70,12 @@ def main():
           '标题栏在内容区上方')
     check(win.titlebar.title.text() == T.APP_NAME,
           '标题栏写着应用名：%s' % win.titlebar.title.text())
-    check('v3' in win.titlebar.subtitle.text(),
-          '标题栏带版本号：%s' % win.titlebar.subtitle.text())
+    # 界面里不显示版本号（版本只服务发布流程）。副标题留空时整块隐藏，
+    # 不能只是"看不见但还占位"，否则标题左右间距会不齐。
+    check(win.titlebar.subtitle.text() == '',
+          '标题栏不带版本号：%r' % win.titlebar.subtitle.text())
+    check(not win.titlebar.subtitle.isVisible(),
+          '副标题为空时整块隐藏（不占位）')
 
     # ---------------------------------------------------------- B 命中测试
     w, h = win.width(), win.height()
@@ -171,7 +175,7 @@ def main():
         _lines.append('        %r' % (exc,))
     check(ok, 'nativeEvent 对任何输入都不抛异常')
 
-    from xk_app.app.gui import shell as SH
+    from crawler.gui import shell as SH
     check(SH._NATIVE_ERRORS == [], 'nativeEvent 没有记录到任何异常')
 
     # 未处理的消息必须返回 (False, 0)。绝对不能再调 super().nativeEvent()——
@@ -181,7 +185,7 @@ def main():
           '未处理的消息返回 (False, 0)，不调基类实现')
 
     # ---------------------------------------------------------- E 图标
-    from xk_app.app.gui.shell import resource_path
+    from crawler.gui.shell import resource_path
     ico = resource_path('assets', 'app.ico')
     check(os.path.exists(ico), 'app.ico 存在')
     sizes = []

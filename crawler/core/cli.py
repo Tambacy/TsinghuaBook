@@ -6,36 +6,28 @@
     TsinghuaBookCrawler.exe <书籍链接> --token eyJhb...
     TsinghuaBookCrawler.exe -h
 
-仓库根的 main.py 依然可用（`python main.py <url> --token ...`），
+仓库根的 cli.py 依然可用（`python cli.py <url> --token ...`），
 它只是转发到这里，行为完全一致。
+
+下载与合成仍用 `crawler/legacy` 里上游脚本版的实现（download_imgs /
+hhhimg2pdf / utils）。图形界面走的是 core 里的重写版，两条路互不影响。
 """
 import argparse
-import os
 import sys
 
 
-def _import_root_modules():
+def _legacy_impl():
     """
-    download_imgs / hhhimg2pdf / utils 仍在仓库根目录。
+    取上游脚本版的下载/合成实现。
 
-    开发态：仓库根本来就在 sys.path 上，直接 import。
-    冻结态：这些模块被 PyInstaller 打进了包里，同样能 import。
+    这些模块收在 crawler/legacy 里，用相对导入即可 —— 以前它们在仓库根，
+    靠「仓库根刚好在 sys.path 上」才 import 得到，冻结后还得靠一段兜底
+    代码再挂一次 sys.path，很脆。收进包之后两种情况都只是普通 import。
     """
-    try:
-        from download_imgs import download_imgs
-        from hhhimg2pdf import img2pdf
-        from utils import get_chap_page, is_image
-        return download_imgs, img2pdf, get_chap_page, is_image
-    except ImportError:
-        # 兜底：把仓库根挂到 sys.path 再试一次（源码直接运行的情况）
-        root = os.path.dirname(os.path.dirname(os.path.dirname(
-            os.path.dirname(os.path.abspath(__file__)))))
-        if root not in sys.path:
-            sys.path.insert(0, root)
-        from download_imgs import download_imgs
-        from hhhimg2pdf import img2pdf
-        from utils import get_chap_page, is_image
-        return download_imgs, img2pdf, get_chap_page, is_image
+    from ..legacy.download_imgs import download_imgs
+    from ..legacy.hhhimg2pdf import img2pdf
+    from ..legacy.utils import get_chap_page, is_image
+    return download_imgs, img2pdf, get_chap_page, is_image
 
 
 def build_parser():
@@ -45,7 +37,7 @@ def build_parser():
                     'http://ereserves.lib.tsinghua.edu.cn. '
                     'By default, the number of processes is four and the temporary '
                     'images WILL BE preserved. \nFor example, '
-                    '"python main.py https://ereserves.lib.tsinghua.edu.cn/bookDetail/'
+                    '"python cli.py https://ereserves.lib.tsinghua.edu.cn/bookDetail/'
                     'c01e1db11c4041a39db463e810bac8f9 --token eyJhb...". \n'
                     'Note that you need to manually login the ereserves website and '
                     'obtain the token from the FIRST request after login, like '
@@ -70,7 +62,7 @@ def run(argv):
     # 延迟 import：requests / PyMuPDF 都不轻，GUI 模式不该为它们付启动代价
     from . import engine
 
-    download_imgs, img2pdf, get_chap_page, is_image = _import_root_modules()
+    download_imgs, img2pdf, get_chap_page, is_image = _legacy_impl()
 
     url = args.url
     token = args.token

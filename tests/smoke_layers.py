@@ -24,9 +24,9 @@ from PyQt6.QtCore import Qt  # noqa: E402
 from PyQt6.QtWidgets import (QApplication, QHBoxLayout, QVBoxLayout,  # noqa: E402
                              QWidget)
 
-from xk_app.app.gui import theme as T  # noqa: E402
-from xk_app.app.gui import widgets as W  # noqa: E402
-from xk_app.app.gui.backdrop import SkyBackdrop, SkyPanel  # noqa: E402
+from crawler.gui import theme as T  # noqa: E402
+from crawler.gui import widgets as W  # noqa: E402
+from crawler.gui.backdrop import SkyBackdrop, SkyPanel  # noqa: E402
 
 
 def main():
@@ -126,7 +126,7 @@ def main():
     gh = QHBoxLayout(grid_holder)
     gh.setContentsMargins(0, 0, 0, 0)
     gh.setSpacing(T.GRID_GAP)
-    from xk_app.app.gui.views.base import BookGrid
+    from crawler.gui.views.base import BookGrid
     grid = BookGrid()
     grid.resize(1100, 420)
     grid.set_items([W.BookCard({'book_id': 'A', 'title': '大学俄语1（新版）',

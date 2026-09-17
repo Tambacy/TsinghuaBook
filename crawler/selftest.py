@@ -58,8 +58,9 @@ def run_selftest():
     # 命令行下载链路。这条必须在冻结环境里单独验：
     # 「-h」只走 argparse，就算这几个模块没被打进去也照样打印帮助，
     # 真正的下载却会在启动线程时才炸。所以这里必须显式 import。
-    for mod in ('download_imgs', 'hhhimg2pdf', 'utils', 'auth_get',
-                'xk_app.app.core.cli'):
+    for mod in ('crawler.legacy.download_imgs', 'crawler.legacy.hhhimg2pdf',
+                'crawler.legacy.utils', 'crawler.legacy.auth_get',
+                'crawler.core.cli'):
         try:
             __import__(mod)
             results.append(_report(True, 'import %s（命令行链路）' % mod))
@@ -67,9 +68,9 @@ def run_selftest():
             results.append(_report(False, 'import %s（命令行链路）' % mod, str(e)))
 
     # 界面用到的核心模块
-    for mod in ('xk_app.app.core.store', 'xk_app.app.core.queue',
-                'xk_app.app.core.worker', 'xk_app.app.gui.views',
-                'xk_app.app.gui.login', 'xk_app.app.core.tokeninfo'):
+    for mod in ('crawler.core.store', 'crawler.core.queue',
+                'crawler.core.worker', 'crawler.gui.views',
+                'crawler.gui.login', 'crawler.core.tokeninfo'):
         try:
             __import__(mod)
             results.append(_report(True, 'import %s' % mod))
@@ -78,7 +79,7 @@ def run_selftest():
 
     # Token 解析：登录页和「失效提醒」都靠它，是发布版必须能跑的一环
     try:
-        from xk_app.app.core import tokeninfo as _ti
+        from crawler.core import tokeninfo as _ti
         _jwt = ('eyJhbGciOiJSUzI1NiJ9.eyJleHAiOjQxMDc0NDAwMDB9.sig')
         _url = 'https://ereserves.lib.tsinghua.edu.cn/index?token=%s' % _jwt
         results.append(_report(_ti.extract_token(_url) == _jwt,
@@ -142,7 +143,7 @@ def run_selftest():
         results.append(_report(False, 'import PyQt6.QtWebEngineCore', str(e)))
 
     # 资源
-    from xk_app.app.gui.shell import resource_path
+    from crawler.gui.shell import resource_path
     icon = resource_path('assets', 'app.ico')
     results.append(_report(os.path.exists(icon), 'assets/app.ico 存在', icon))
 
@@ -161,7 +162,7 @@ def run_selftest():
     except Exception as e:                                           # noqa: BLE001
         results.append(_report(False, '解析应用图标', str(e)))
 
-    from xk_app.app.gui import backdrop
+    from crawler.gui import backdrop
     bd = backdrop._find_backdrop()
     _say('       backdrop override = %s' % bd)   # None 是正常的
 
@@ -182,8 +183,8 @@ def run_selftest():
     # 为什么需要：之前有个检查间接调了 settings.save()，把用户的 token 清掉了；
     # Token 过期时窗口启动还会走退出登录，连带把 webprofile 删掉。
     # 这里既拦住、又把它记成失败项 —— 只堵不说等于掩盖问题。
-    from xk_app.app.core import store
-    from xk_app.app.gui import login as _login_mod
+    from crawler.core import store
+    from crawler.gui import login as _login_mod
     _login_mod.PLATFORM_HOME = 'about:blank'
 
     _real_cfg = os.path.abspath(os.path.join(store.data_dir(), 'config.json'))
@@ -207,7 +208,7 @@ def run_selftest():
     _login_mod._rmtree_quiet = _guarded_rmtree
 
     try:
-        from xk_app.app.gui.shell import MainWindow
+        from crawler.gui.shell import MainWindow
         win = MainWindow()
         win.resize(1280, 820)
         win.show()
@@ -220,8 +221,8 @@ def run_selftest():
         # 窗口外壳：无边框 + 自绘标题栏 + 命中测试。
         # 这几条是「窗口还能不能拖 / 缩 / 关」，坏了就是不可用级别的问题。
         from PyQt6.QtCore import QPoint, Qt as _Qt
-        from xk_app.app.gui import theme as _T
-        from xk_app.app.gui import titlebar as _tb
+        from crawler.gui import theme as _T
+        from crawler.gui import titlebar as _tb
         frameless = bool(win.windowFlags() & _Qt.WindowType.FramelessWindowHint)
         results.append(_report(frameless, '窗口使用自绘标题栏（已去掉系统边框）'))
         results.append(_report(win.titlebar is not None
@@ -251,7 +252,7 @@ def run_selftest():
             results.append(_report(True, 'nativeEvent 对异常输入安全'))
         except BaseException as e:                                   # noqa: BLE001
             results.append(_report(False, 'nativeEvent 对异常输入安全', str(e)))
-        from xk_app.app.gui import shell as _sh
+        from crawler.gui import shell as _sh
         results.append(_report(not _sh._NATIVE_ERRORS,
                                '窗口命中测试没有出错',
                                ' | '.join(_sh._NATIVE_ERRORS) or '0 次'))
@@ -259,7 +260,7 @@ def run_selftest():
         # 天幕底图：随包发布、确实被用上、而且是静态的。
         # 少了这张图程序不会崩（会静默退回程序化夜空），但界面会明显变差 ——
         # 而它又是靠 PyInstaller 的 datas 带进来的，最容易在打包时漏掉。
-        from xk_app.app.gui import backdrop as _bd
+        from crawler.gui import backdrop as _bd
         _art = _bd._find_backdrop()
         results.append(_report(bool(_art), '天幕底图已随包发布',
                                _art or '未找到，会退回程序化夜空'))
@@ -276,7 +277,7 @@ def run_selftest():
         _hero = _bd._find_asset('login_hero')
         results.append(_report(bool(_hero), '登录页主视觉已随包发布',
                                _hero or '未找到，会退回 backdrop'))
-        from xk_app.app.gui import covers as _cv
+        from crawler.gui import covers as _cv
         _missing = [n for n in _cv.NAMES if not _cv.path(n)]
         results.append(_report(not _missing,
                                '书库封面底图 %d 张齐全' % len(_cv.NAMES),
@@ -419,7 +420,7 @@ def run_selftest():
         except Exception as e:                                       # noqa: BLE001
             results.append(_report(False, '登录页构造', str(e)))
 
-        from xk_app.app.gui import theme as T
+        from crawler.gui import theme as T
         results.append(_report(win.sidebar.width() == T.SIDEBAR_W,
                                '侧边栏 = %dpx' % T.SIDEBAR_W,
                                '实际 %d' % win.sidebar.width()))
@@ -486,7 +487,7 @@ def run_selftest():
         results.append(_report(True, '天幕四个变体全部渲染'))
 
         # 引擎可导入、路径工具可用
-        from xk_app.app.core import engine
+        from crawler.core import engine
         results.append(_report(callable(engine.download_all), 'engine 可导入'))
         results.append(_report(engine.IMG_SUFFIXES == ['jpeg', 'jpg', 'png'],
                                '图片后缀白名单正确'))

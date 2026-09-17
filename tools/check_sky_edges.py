@@ -42,7 +42,7 @@ _CFG = isolate()
 
 from PyQt6.QtWidgets import QApplication  # noqa: E402
 
-from xk_app.app.gui import theme as T  # noqa: E402
+from crawler.gui import theme as T  # noqa: E402
 
 # 侧边栏最后一列相对左邻列允许暗多少（灰阶）。合成器的边缘重采样会吃掉
 # 20~45 个灰阶，正常绘制下这个值应当接近 0，留 4 个灰阶余量。
@@ -95,7 +95,7 @@ def grab_window(hwnd, w, h):
 def main():
     app = QApplication(sys.argv)
     T.install_app_font(app)
-    from xk_app.app.gui.shell import MainWindow
+    from crawler.gui.shell import MainWindow
 
     win = MainWindow()
     win.resize(T.WIN_W, T.WIN_H)

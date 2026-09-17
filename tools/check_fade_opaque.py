@@ -4,7 +4,7 @@
 
 天幕底部那条「化开区」是叠在别的控件上的，一旦半透明，身后的东西就会透
 出来。这个 bug 真的发生过：侧边栏下面压着已经隐藏的登录页品牌区，于是
-侧边栏上浮出一行读不清的白字（用户截图里那行「v3.0 · 电子教材 PDF 下载工」）。
+侧边栏上浮出一行读不清的白字（截图里那行「电子教材 PDF 下载工具」）。
 
 为什么不用抓屏验证：窗口的 z 序不稳定，抓到的可能是别的窗口（踩过）。
 这里改成确定性的做法 —— 在侧边栏**正下方**放一块纯红，看它会不会透出来。
@@ -30,9 +30,9 @@ from PyQt6.QtCore import QRect, QRectF  # noqa: E402
 from PyQt6.QtGui import QColor, QPainter  # noqa: E402
 from PyQt6.QtWidgets import QApplication, QWidget  # noqa: E402
 
-from xk_app.app.gui import theme as T  # noqa: E402
-from xk_app.app.gui.backdrop import _FADE_ROW_BAND  # noqa: E402
-from xk_app.app.gui.sidebar import Sidebar  # noqa: E402
+from crawler.gui import theme as T  # noqa: E402
+from crawler.gui.backdrop import _FADE_ROW_BAND  # noqa: E402
+from crawler.gui.sidebar import Sidebar  # noqa: E402
 
 app = QApplication(sys.argv)
 T.install_app_font(app)
@@ -217,7 +217,7 @@ if worst[0] < -SEAM_TOL:
 print()
 print('  化开区画法检查：')
 
-import xk_app.app.gui.backdrop as _bd  # noqa: E402
+import crawler.gui.backdrop as _bd  # noqa: E402
 
 _real_painter = _bd.QPainter
 _rec = []

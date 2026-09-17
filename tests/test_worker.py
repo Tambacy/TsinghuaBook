@@ -48,7 +48,7 @@ def main():
         state = {}
         patch(*build_fakes(state))
 
-        from xk_app.app.core import engine, worker
+        from crawler.core import engine, worker
 
         # ---------------------------------------------------- DownloadWorker
         print('=== 1. DownloadWorker 全流程（解析 -> 下载 -> PDF）===', flush=True)

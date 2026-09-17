@@ -19,9 +19,9 @@ from tests._isolate import isolate  # noqa: E402
 
 _CFG = isolate()
 
-from xk_app.app.core import store, tokeninfo  # noqa: E402
-from xk_app.app.gui import login as L  # noqa: E402
-from xk_app.app.gui import theme as T  # noqa: E402
+from crawler.core import store, tokeninfo  # noqa: E402
+from crawler.gui import login as L  # noqa: E402
+from crawler.gui import theme as T  # noqa: E402
 
 fails = []
 
@@ -53,9 +53,9 @@ def main():
     from PyQt6.QtWidgets import QApplication
 
     app = QApplication(sys.argv)
-    from xk_app.app.gui import theme as T
+    from crawler.gui import theme as T
     T.install_app_font(app)
-    from xk_app.app.gui import login as L
+    from crawler.gui import login as L
 
     st = store.Settings()
     st.update(login_mode='sso', token='')
@@ -138,7 +138,7 @@ def main():
     # 用真实 Token 的字符构成造一个：base64url 会带 '-' 和 '_'。
     # 签名段一律用假串 —— 别把任何真实凭证片段留在仓库里。
     from PyQt6.QtCore import QUrl
-    from xk_app.app.gui import login as L
+    from crawler.gui import login as L
     _sig = ('AAAA-BBBB_CCCC-DDDD_EEEE-FFFF_GGGG-HHHH_IIII-JJJJ'
             '_KKKK-LLLL_MMMM-NNNN_OOOO-PPPP_QQQQ-RRRR_SSSS')
     _real_like = ('eyJhbGciOiJSUzI1NiJ9'
@@ -221,7 +221,7 @@ def main():
     # 这张卡片里装着 QWebEngineView。QGraphicsEffect 挂在它的祖先上时，Qt 会
     # 强制整棵子树走「离屏 pixmap + 模糊 + 合成」，浏览器每一帧都要过一遍 ——
     # 表现就是里面那个小框滚动、点击都要反应很久。所以投影必须自绘。
-    from xk_app.app.gui import widgets as _W
+    from crawler.gui import widgets as _W
     scr.resize(1600, 900)
     app.processEvents()
     card = scr.card
@@ -312,7 +312,7 @@ def main():
     check(len(cap13) == 1, '  恢复后能正常截到 Token（%d 条）' % len(cap13))
 
     # 一次都没建过浏览器时也要能安全退出
-    from xk_app.app.gui.login import SsoPanel
+    from crawler.gui.login import SsoPanel
     bare = SsoPanel(scr.settings)
     bare.reset_session()
     check(True, '  没建过浏览器也能安全退出登录')

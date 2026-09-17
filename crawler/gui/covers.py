@@ -25,8 +25,9 @@ _ASSET_DIRS = []
 if getattr(sys, '_MEIPASS', None):
     # PyInstaller 把只读资源解到这里
     _ASSET_DIRS.append(os.path.join(sys._MEIPASS, 'assets'))
+# 开发态：本文件在 crawler/gui/ 下，往上两层到仓库根，再进 crawler/assets
 _ASSET_DIRS.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__)))), 'assets'))
+    os.path.abspath(__file__)))), 'crawler', 'assets'))
 
 _pm_cache = {}
 _lum_cache = {}

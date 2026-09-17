@@ -24,7 +24,7 @@ sys.path.insert(0, _HERE)
 from gen_image import generate  # noqa: E402
 
 SRC_DIR = os.path.join(_HERE, 'art')
-OUT = os.path.join(_ROOT, 'xk_app', 'assets', 'login_hero.jpg')
+OUT = os.path.join(_ROOT, 'crawler', 'assets', 'login_hero.jpg')
 
 OUT_W, OUT_H = 1200, 1920        # 0.625，和左栏 537x860 同比例
 SRC_SIZE = '2048x2048'

@@ -14,7 +14,7 @@ from tests._isolate import isolate  # noqa: E402
 
 isolate()
 
-from xk_app.app.gui import theme as T  # noqa: E402
+from crawler.gui import theme as T  # noqa: E402
 
 # 控制台默认编码在中文 Windows 上是 GBK，直接把报告写成 UTF-8 文件更可靠
 REPORT = os.path.join(_ROOT, '_smoke', 'design_language.txt')
@@ -59,8 +59,8 @@ head('')
 head('=== 已删除的选课场景结构（应当为 0）===')
 import subprocess
 for token in ('StepRail', 'CourseCard', 'NavPillButton'):
-    r = subprocess.run(['findstr', '/s', '/m', token, 'xk_app\\*.py',
-                        'xk_app\\app\\gui\\*.py', 'xk_app\\app\\gui\\views\\*.py'],
+    r = subprocess.run(['findstr', '/s', '/m', token, 'crawler\\*.py',
+                        'crawler\\app\\gui\\*.py', 'crawler\\app\\gui\\views\\*.py'],
                        capture_output=True, text=True)
     show(token, '命中文件数 %d' % len([x for x in r.stdout.splitlines() if x.strip()]))
 

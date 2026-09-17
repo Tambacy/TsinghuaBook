@@ -21,7 +21,7 @@ from tests._isolate import isolate  # noqa: E402
 
 _CFG = isolate()
 
-from xk_app.app.core import tokeninfo as ti  # noqa: E402
+from crawler.core import tokeninfo as ti  # noqa: E402
 
 fails = []
 
