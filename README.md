@@ -30,7 +30,7 @@
 ## 安装
 
 1. 到本仓库的 [Releases](../../releases) 页面下载最新安装包
-   **`TsinghuaBookCrawler-2.1-Setup.exe`**（约 133 MB）。
+   **`TsinghuaBookCrawler-2.1.1-Setup.exe`**（约 133 MB）。
 2. 双击运行，一路"下一步"。
 3. 装完从开始菜单或桌面快捷方式启动。
 
@@ -302,7 +302,8 @@ python cli.py "https://ereserves.lib.tsinghua.edu.cn/bookDetail/c01e1db1..." --t
 
 | 版本 | 说明 |
 | --- | --- |
-| **桌面版 2.1** | 当前发布版。新增应用内更新：发现新版本会在侧边栏提示，可直接在程序里下载并安装。 |
+| **桌面版 2.1.1** | 当前发布版。修复 2.1 里「点立即安装没反应」的问题（安装包没被真正启动）。 |
+| 桌面版 2.1 | 新增应用内更新：发现新版本会在侧边栏提示，可直接在程序里下载并安装。 |
 | 桌面版 2.0 | 修复下载完成时崩溃、下载线程越界操作界面、文件夹改名后显示「文件已丢失」三个问题。 |
 | 桌面版 1.0 | 全部推倒重写成 PyQt6 桌面应用：图形界面、内嵌浏览器登录、批量队列、书库、安装包。 |
 
@@ -451,7 +452,7 @@ venv\Scripts\pip install -r requirements.txt PyQt6 PyQt6-WebEngine pyinstaller
 :: 1) 打包成 onedir 目录  -> dist\TsinghuaBookCrawler\
 venv\Scripts\pyinstaller --noconfirm --clean TsinghuaBookCrawler.spec
 
-:: 2) 打包成安装包        -> dist\TsinghuaBookCrawler-2.1-Setup.exe
+:: 2) 打包成安装包        -> dist\TsinghuaBookCrawler-2.1.1-Setup.exe
 ::    ISCC 的位置看装在哪（非管理员安装会落在 localappdata）：
 ::      C:\Program Files (x86)\Inno Setup 6\ISCC.exe
 ::      %LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe

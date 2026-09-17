@@ -11,6 +11,7 @@ import shutil
 import sys
 import tempfile
 import threading
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -204,7 +205,10 @@ def main():
         U.launch(setup, exe=exe)
     finally:
         U.subprocess.Popen = real
-    cmd = ' '.join(captured['args'])
+    cmd = captured['args']
+    check(isinstance(cmd, str),
+          '命令以字符串形式交给 Popen（传 list 会被 list2cmdline 二次加引号）')
+    check(captured['kw'].get('shell') is True, '用 shell=True')
     check('/SILENT' in cmd, '静默安装（装到用户目录，不弹 UAC）')
     check('start "" /wait' in cmd, '先等安装结束再重启程序')
     check(exe in cmd, '装完把程序重新拉起来')
@@ -216,14 +220,39 @@ def main():
         U.launch(setup, exe='')                   # 源码运行：不重启自己
     finally:
         U.subprocess.Popen = real
-    check('& start' not in ' '.join(captured['args']),
-          '没有 exe 时不拼重启命令')
+    check('& start' not in captured['args'], '没有 exe 时不拼重启命令')
 
     try:
         U.launch(os.path.join(tmp, 'nope.exe'))
         check(False, '安装包不存在应该报错')
     except U.UpdateError as e:
         check('不见了' in str(e), '安装包不存在时抛 UpdateError：%s' % e)
+
+    print('[J2] 命令真的能被执行（不只是字符串长得对）', flush=True)
+    # 上面那组只检查了命令串的样子。真正的坑恰恰在这里：命令串看着完全正确，
+    # 但 Popen 的传参方式让 cmd.exe 解析不了，于是安装包被静默丢掉。
+    # 所以这里用一个「假装成安装包」的批处理真跑一遍，看它有没有留下痕迹。
+    if sys.platform == 'win32':
+        marker = os.path.join(tmp, 'ran.txt')
+        fake_setup = os.path.join(tmp, 'fake-setup.bat')
+        with open(fake_setup, 'w', encoding='ascii') as fh:
+            fh.write('@echo off\r\necho ran > "%s"\r\n' % marker)
+        got = []
+        try:
+            U.launch(fake_setup, exe='')
+        except U.UpdateError as e:
+            got.append(str(e))
+        for _ in range(60):
+            if os.path.exists(marker) or got:
+                break
+            time.sleep(0.1)
+        check(os.path.exists(marker),
+              'launch() 拼出来的命令确实被执行了（安装包不会静默丢掉）')
+        if os.path.exists(marker):
+            with open(marker, encoding='utf-8') as fh:
+                check('ran' in fh.read(), '子进程正常跑完')
+    else:
+        check(True, '非 Windows 跳过')
 
     print('[K] 源码运行时不重启自己', flush=True)
     check(U.current_exe() == '' or os.path.exists(U.current_exe()),

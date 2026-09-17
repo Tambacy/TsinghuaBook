@@ -8,7 +8,7 @@
 `tools/check_version.py` 会校验 iss 和这里一致，防止两边各改各的。
 """
 
-VERSION = '2.1'
+VERSION = '2.1.1'
 
 # GitHub 仓库（owner/name）。更新检查打的是它的 releases 接口。
 REPO = 'Tambacy/TsinghuaBook'

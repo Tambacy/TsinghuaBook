@@ -236,8 +236,14 @@ def launch(installer, exe=None, silent=True):
         # 脱离本进程的进程组，本进程退出不会把它带走
         flags = 0x00000008 | 0x00000200          # DETACHED_PROCESS | NEW_PROCESS_GROUP
     try:
-        subprocess.Popen(['cmd', '/c', cmd], creationflags=flags,
-                         close_fds=True, shell=False)
+        # 必须 shell=True，不能写成 Popen(['cmd', '/c', cmd])。
+        #
+        # 传 list 给 Popen 时，Windows 上 Python 会用 list2cmdline 再拼一遍
+        # 命令行，于是我们自己写的引号又被包了一层，cmd.exe 解析不了 ——
+        # 实测报「文件名、目录名或卷标语法不正确」，而且 Popen 本身不抛异常，
+        # 安装包就这么被静默丢掉了，用户点了「立即安装」什么都不会发生。
+        # shell=True 是把命令串原样交给 cmd /c，引号不会被二次处理。
+        subprocess.Popen(cmd, creationflags=flags, close_fds=True, shell=True)
     except OSError as e:
         raise UpdateError('无法启动安装程序：%s' % e)
     return cmd
