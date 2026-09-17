@@ -147,8 +147,14 @@ class CardIn:
         anim.setStartValue(0)
         anim.setEndValue(T.shadow_spec('card')[0])
         anim.setEasingCurve(_EASE)
-        QTimer.singleShot(int(delay_ms), anim.start)
         widget._card_in_anim = anim
+        # 这里必须把 widget 当 context 传给 singleShot。
+        # anim 的父对象就是 widget，卡片一旦被销毁（书库重建、切页、关窗口），
+        # C++ 侧的 anim 也跟着没了；如果只写 singleShot(delay, anim.start)，
+        # 延迟到点时会去调一个已经析构的对象，PyQt 直接 qFatal，表现成
+        # 没有任何 Python 回溯的 0xC0000409 崩溃。传了 context 之后，
+        # widget 一销毁这个定时器就自动作废。
+        QTimer.singleShot(int(delay_ms), widget, anim.start)
         return anim
 
 
@@ -616,6 +622,10 @@ class Dot(QWidget):
 
 
 def _elide(fm, text, width):
+    # paintEvent 里抛异常在 PyQt 下等于 qFatal：进程直接 0xC0000409 退出，
+    # 没有回溯、没有提示。所以绘制路径上不能相信任何外部传进来的类型。
+    if not isinstance(text, str):
+        text = '' if text is None else str(text)
     if width <= 0:
         return ''
     return fm.elidedText(text, Qt.TextElideMode.ElideRight, width)

@@ -1,30 +1,26 @@
-# 清华教参下载器 1.0
+# 清华教参下载器 2.0
 
 **发布日期**：2026 年 9 月
 **适用平台**：Windows 10 64 位及以上
-**安装包**：`TsinghuaBookCrawler-1.0-Setup.exe`（约 133 MB，无需管理员权限）
+**安装包**：`TsinghuaBookCrawler-2.0-Setup.exe`（约 133 MB，无需管理员权限）
 
 ---
+
+## 本版修复
+
+- **下载完成时程序崩溃。** 侧边栏状态文字被误赋成布尔值，绘制时抛异常；PyQt 在绘制回调里遇到未捕获异常会直接终止进程，不弹任何提示。表现就是「程序无响应 → 崩溃」，而书其实已经下载完成。
+- **下载线程直接操作界面。** 界面刷新与下载跑在同一个线程上，现改为投递到主线程执行，并合并高频刷新。
+- **修改书库文件夹名后显示「文件已丢失」**，且点刷新无效。现按 `<book_id>.pdf` 自动重新定位。
 
 ## 说明
 
 将清华教参平台上的电子教材整本下载为 PDF 的 Windows 桌面应用。
-
-本版本在上游脚本版（[lflame/TsinghuaBookCrawler](https://github.com/lflame/TsinghuaBookCrawler)）
+在上游脚本版（[lflame/TsinghuaBookCrawler](https://github.com/lflame/TsinghuaBookCrawler)）
 的基础上重写为图形界面程序，使用不再需要安装 Python 或调用命令行。
-
-## 功能
-
-- **图形界面**：下载队列、书库、设置、使用说明四个页面
-- **两种登录方式**：内嵌浏览器的统一身份认证（自动获取 Token）；手动填入 Token
-- **Token 自动续期**：显示剩余有效时间；下载中失效时自动重新登录并续传
-- **批量与断点**：一次可粘贴多条链接；中断后可续传，失败项可单独重试
-- **书库**：自动记录书名、作者、页数与体积，支持搜索、打开 PDF、定位目录
-- **无边框窗口**：拖动与缩放采用系统原生行为，支持边缘吸附
 
 ## 安装
 
-1. 下载 `TsinghuaBookCrawler-1.0-Setup.exe`
+1. 下载 `TsinghuaBookCrawler-2.0-Setup.exe`
 2. 运行安装程序，按提示完成安装（默认路径 `%LOCALAPPDATA%\Programs\TsinghuaBookCrawler`）
 3. 从开始菜单或桌面快捷方式启动
 
@@ -36,11 +32,6 @@
 - Windows 10 64 位及以上
 - 约 500 MB 磁盘空间
 - 可访问 `*.tsinghua.edu.cn` 与 `*.lib.tsinghua.edu.cn`
-
-## 修复
-
-- 修复 `DownloadWorker` 对 `resolve_book()` 返回值的解包错误（按三个值解包，实际为四个）
-- 修复侧边栏天幕化开区底边与右边出现的紫灰色接缝
 
 ## 数据与卸载
 

@@ -12,7 +12,7 @@ import subprocess
 import sys
 import time
 
-from PyQt6.QtCore import QEvent, QRectF, Qt, QTimer
+from PyQt6.QtCore import QEvent, QRectF, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor, QPainter, QPen
 from PyQt6.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QMessageBox,
                              QStackedWidget, QVBoxLayout, QWidget)
@@ -98,6 +98,17 @@ def _open_file(path):
 
 
 class MainWindow(QWidget):
+    # 下载跑在一个普通 Python 线程上（QueueManager._run），而 Qt 控件只能
+    # 在 GUI 线程碰 —— QPixmap 更是明确不线程安全。以前 QueueManager 的回调
+    # 直接指向下面的界面方法，于是 set_jobs / set_counts / _refresh_library
+    # 全都在下载线程里执行，界面卡死再崩。这里统一改成信号：下载线程只负责
+    # emit，Qt 自己排队投递到 GUI 线程再执行。
+    # _queue_dirty 是高频的（每下一页一次），所以接一个合并定时器，免得一次
+    # 下载往事件队列里灌几千个事件。
+    _queue_dirty = pyqtSignal()
+    _library_dirty = pyqtSignal()
+    _log_line = pyqtSignal(str, str)
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle(APP_NAME)
@@ -124,9 +135,21 @@ class MainWindow(QWidget):
         self.library = store.Library()
         self.queue = QueueManager(
             self.settings, self.library,
-            on_change=self._queue_changed,
-            on_log=self._log,
-            on_library_changed=self._library_changed)
+            on_change=self._emit_queue_dirty,
+            on_log=self._emit_log,
+            on_library_changed=self._emit_library_dirty)
+        # 必须显式写 QueuedConnection：默认的 AutoConnection 在「发送者与接收者
+        # 同属一个线程」时会退化成直连，那就又回到跨线程碰控件的老路了。
+        self._queue_dirty.connect(self._on_queue_dirty,
+                                  Qt.ConnectionType.QueuedConnection)
+        self._library_dirty.connect(self._on_library_dirty,
+                                    Qt.ConnectionType.QueuedConnection)
+        self._log_line.connect(self._log, Qt.ConnectionType.QueuedConnection)
+        # 高频信号合并：60ms 内的多次变化只刷一次界面
+        self._queue_coalesce = QTimer(self)
+        self._queue_coalesce.setSingleShot(True)
+        self._queue_coalesce.setInterval(60)
+        self._queue_coalesce.timeout.connect(self._queue_changed)
         self._runner = None
         self._verify_runner = None
         self._view = 'queue'
@@ -648,11 +671,34 @@ class MainWindow(QWidget):
             root = self.settings.resolve_save_dir(app_base_dir())
             try:
                 self.library.import_existing(root)
+                # 用户改过文件夹名的话，记录里的绝对路径已经失效，而
+                # import_existing 只补新记录、不修老记录，书库就会一直显示
+                # 「文件已丢失」且刷新无效。这里按 <book_id>.pdf 重新认领一遍。
+                self.library.relocate_missing(root)
             except Exception:                                    # noqa: BLE001
                 pass
         self.library_view.set_records(self.library.all())
 
     def _library_changed(self):
+        self._on_library_dirty()
+
+    # ---- 下载线程 -> GUI 线程的跳板
+    # 这四个方法只负责 emit，本身不碰任何控件，所以可以在下载线程里安全调用。
+    def _emit_queue_dirty(self):
+        self._queue_dirty.emit()
+
+    def _emit_library_dirty(self):
+        self._library_dirty.emit()
+
+    def _emit_log(self, msg, tone=''):
+        self._log_line.emit(msg, tone)
+
+    def _on_queue_dirty(self):
+        # 已经在 GUI 线程了。合并成一次刷新，避免每个页面都重建一遍列表。
+        if not self._queue_coalesce.isActive():
+            self._queue_coalesce.start()
+
+    def _on_library_dirty(self):
         self._refresh_library(import_existing=False)
 
     def _open_library_folder(self, rec):
@@ -700,8 +746,14 @@ class MainWindow(QWidget):
             # 跑完了：停掉定时刷新，并把最后一批状态补齐
             self._refresh_library(import_existing=False)
             if done or failed:
+                # 以前这里把「token 是否有效」当成 title 传了进来，而
+                # _set_sidebar_status 的第一个参数是标题文字 —— 于是
+                # status_chip._title 变成了一个 bool，绘制时
+                # elidedText(True, ...) 抛 TypeError。PyQt 在绘制回调里碰到
+                # 未捕获异常会直接 qFatal，进程以 0xC0000409 退出且没有 Python
+                # 回溯 —— 这就是「下载完就崩、但书其实已经下好了」的真正原因。
                 self._set_sidebar_status(
-                    bool((self.settings.token or '').strip()),
+                    '下载完成',
                     '完成 %d · 失败 %d' % (done, failed))
             else:
                 self._sync_sidebar()

@@ -29,7 +29,7 @@
 ## 安装
 
 1. 到本仓库的 [Releases](../../releases) 页面下载最新安装包
-   **`TsinghuaBookCrawler-1.0-Setup.exe`**（约 133 MB）。
+   **`TsinghuaBookCrawler-2.0-Setup.exe`**（约 133 MB）。
 2. 双击运行，一路"下一步"。
 3. 装完从开始菜单或桌面快捷方式启动。
 
@@ -281,7 +281,8 @@ python cli.py "https://ereserves.lib.tsinghua.edu.cn/bookDetail/c01e1db1..." --t
 
 | 版本 | 说明 |
 | --- | --- |
-| **桌面版 1.0** | 当前发布版。全部推倒重写成 PyQt6 桌面应用：图形界面、内嵌浏览器登录、批量队列、书库、安装包。 |
+| **桌面版 2.0** | 当前发布版。修复下载完成时崩溃、下载线程越界操作界面、文件夹改名后显示「文件已丢失」三个问题。 |
+| 桌面版 1.0 | 全部推倒重写成 PyQt6 桌面应用：图形界面、内嵌浏览器登录、批量队列、书库、安装包。 |
 
 ### 上游脚本（原作者 [lflame](https://github.com/lflame) 的 `TsinghuaBookCrawler`）
 
@@ -428,7 +429,7 @@ venv\Scripts\pip install -r requirements.txt PyQt6 PyQt6-WebEngine pyinstaller
 :: 1) 打包成 onedir 目录  -> dist\TsinghuaBookCrawler\
 venv\Scripts\pyinstaller --noconfirm --clean TsinghuaBookCrawler.spec
 
-:: 2) 打包成安装包        -> dist\TsinghuaBookCrawler-1.0-Setup.exe
+:: 2) 打包成安装包        -> dist\TsinghuaBookCrawler-2.0-Setup.exe
 ::    ISCC 的位置看装在哪（非管理员安装会落在 localappdata）：
 ::      C:\Program Files (x86)\Inno Setup 6\ISCC.exe
 ::      %LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe
@@ -569,6 +570,8 @@ venv\Scripts\python tests\test_engine.py          # 核心 E2E
 venv\Scripts\python tests\test_store_queue.py     # 设置/书库/队列 45 项
 venv\Scripts\python tests\test_worker.py          # 后台线程
 venv\Scripts\python tests\test_gui_integration.py # 界面集成全链路
+venv\Scripts\python tests\test_queue_threading.py # 下载线程不碰控件 + 状态字类型
+venv\Scripts\python tests\test_relocate.py        # 文件夹改名后重新定位
 venv\Scripts\python tests\smoke_window.py         # 四视图渲染与几何断言
 venv\Scripts\python tests\smoke_login.py          # 登录页与 profile 轮换
 venv\Scripts\python tests\test_tokeninfo.py       # Token 解析
@@ -576,6 +579,10 @@ venv\Scripts\python tools\measure_pages.py        # 各页内容高度
 venv\Scripts\python tools\check_fade_opaque.py    # 化开区不透明与接缝
 venv\Scripts\python tools\check_sky_edges.py      # 四条边（需桌面会话）
 ```
+
+> `tests/smoke_weblogin.py` 会真的起一个 `QWebEngineView`。它在部分机器上
+> 偶发以 `0xC0000374`（堆损坏）退出，与程序逻辑无关 —— 原始版本同样如此，
+> 重跑即可。
 
 每个脚本开头都会调 `tests/_isolate.py` 的 `isolate()`，把配置目录顶到临时目录——
 设置和书库是真的写盘的，不隔离就会往你本机的 `%LOCALAPPDATA%\TsinghuaBookCrawler`

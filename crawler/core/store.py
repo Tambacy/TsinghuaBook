@@ -290,6 +290,54 @@ class Library:
             self.save()
         return added
 
+    @staticmethod
+    def _find_pdf(root, book_id, max_depth=4):
+        """
+        在 root 下面找 <book_id>.pdf。
+
+        PDF 的文件名是程序自己按 book_id 起的，用户能改的只有外面那层目录名，
+        所以按文件名找是可靠的。深度限制是防止 save_root 被指到一个很大的
+        目录上时把整个盘扫一遍。
+        """
+        target = book_id + '.pdf'
+        root = os.path.abspath(root)
+        base_depth = root.rstrip(os.sep).count(os.sep)
+        for cur, dirs, files in os.walk(root):
+            if cur.count(os.sep) - base_depth >= max_depth:
+                dirs[:] = []
+            if target in files:
+                return os.path.join(cur, target)
+        return ''
+
+    def relocate_missing(self, save_root):
+        """
+        把「文件已丢失」的记录按文件名重新认领回来，返回修好的条数。
+
+        记录里存的是下载当时的绝对路径。用户把书库里的文件夹改个名，这个路径
+        就失效了，而 import_existing 只补「目录名恰好等于 book_id」的新记录、
+        不会去修老记录 —— 所以界面会一直显示「文件已丢失」，点刷新也没用
+        （用户报的 bug）。这里按 <book_id>.pdf 在 save_root 下重新找一遍，
+        找到就把 pdf_path / save_dir 改回去，记录本身不重建，封面和元数据都保住。
+        """
+        if not save_root or not os.path.isdir(save_root):
+            return 0
+        fixed = 0
+        for rec in self._items:
+            if self.exists_on_disk(rec):
+                continue
+            book_id = rec.get('book_id') or ''
+            if not book_id:
+                continue
+            found = self._find_pdf(save_root, book_id)
+            if not found:
+                continue
+            rec['pdf_path'] = found
+            rec['save_dir'] = os.path.dirname(found)
+            fixed += 1
+        if fixed:
+            self.save()
+        return fixed
+
 
 def pdf_page_count_safe(pdf_path):
     """避免 store 依赖 engine（engine 依赖 requests），出错就 0。"""

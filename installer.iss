@@ -2,10 +2,10 @@
 ;  清华教参下载器 —— Inno Setup 安装包脚本
 ;
 ;  编译：  ISCC.exe installer.iss
-;  产物：  dist\TsinghuaBookCrawler-1.0-Setup.exe
+;  产物：  dist\TsinghuaBookCrawler-2.0-Setup.exe
 ;
 ;  文件名刻意用 ASCII：GitHub Releases 会把 asset 名里的非 ASCII 字符直接
-;  丢掉（实测「清华教参下载器-1.0-安装包.exe」被存成「-1.0-.exe」），
+;  丢掉（实测「清华教参下载器-2.0-安装包.exe」被存成「-1.0-.exe」），
 ;  而且 ASCII 名在各种浏览器 / 下载器下都不会乱码。
 ;
 ;  依赖：  先跑 PyInstaller 生成 dist\TsinghuaBookCrawler.exe
@@ -13,7 +13,7 @@
 
 #define MyAppName "清华教参下载器"
 #define MyAppNameEn "TsinghuaBookCrawler"
-#define MyAppVersion "1.0"
+#define MyAppVersion "2.0"
 #define MyAppPublisher "TsinghuaBookCrawler"
 #define MyAppExeName "TsinghuaBookCrawler.exe"
 ; PyInstaller 的 onedir 输出目录名（= spec 里 COLLECT 的 name），

@@ -34,3 +34,12 @@ _cfgtest/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# 真实凭据绝不入库。实际位置在 %LOCALAPPDATA%\TsinghuaBookCrawler\，
+# 正常情况本来就落在仓库外，这几条只是防止有人把数据目录指到仓库里。
+config.json
+library.json
+webprofile/
+*.jwt
+.env
+.credentials.yaml

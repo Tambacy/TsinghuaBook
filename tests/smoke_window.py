@@ -49,15 +49,28 @@ def _run(app):
         'c01e1db11c4041a39db463e810bac8f94af518935a1ec46ef')
     win._add_urls(['https://ereserves.lib.tsinghua.edu.cn/bookDetail/'
                    'c01e1db11c4041a39db463e810bac8f94af518935a1ec46ef'])
-    jobs = win.queue.snapshot()
-    for i, j in enumerate(jobs):
-        j.title = ['大学俄语1（新版）', '高等数学 上册'][i % 2]
-        j.pages, j.chapters, j.done_pages = 386, 12, 214
-        j.state = 'downloading' if i == 0 else 'done'
-    win.queue_view.set_jobs(jobs)
-    win.queue_view.set_running(True)
-    win.queue_view.set_counts(len(jobs), 1, 1, 0, 0.62)
-    win.queue_view.set_batch_text('正在下载', '第 214/386 页')
+
+    def fake_running_state():
+        """
+        手动把队列页摆成「正在下载」的样子。
+
+        必须在所有挂起的刷新都跑完之后再摆：下载线程的回调现在会经由信号
+        投递到 GUI 线程、再由一个 60ms 的合并定时器触发 _queue_changed()，
+        而 _queue_changed 会按真实的队列状态覆盖界面。先摆后等，摆好的
+        状态会被那次刷新冲掉（这个测试原来就是栽在这里）。
+        """
+        js = win.queue.snapshot()
+        for i, j in enumerate(js):
+            j.title = ['大学俄语1（新版）', '高等数学 上册'][i % 2]
+            j.pages, j.chapters, j.done_pages = 386, 12, 214
+            j.state = 'downloading' if i == 0 else 'done'
+        win.queue_view.set_jobs(js)
+        win.queue_view.set_running(True)
+        win.queue_view.set_counts(len(js), 1, 1, 0, 0.62)
+        win.queue_view.set_batch_text('正在下载', '第 214/386 页')
+        return js
+
+    jobs = fake_running_state()
 
     for i, (bid, title) in enumerate([('大学俄语1（新版）', '大学俄语1（新版）'),
                                       ('高等数学 上册', '高等数学 上册')]):
@@ -95,6 +108,10 @@ def _run(app):
     # 量尺寸前先把队列页切回当前页：非当前页会被 QStackedWidget 隐藏，
     # 隐藏控件的布局不再重算，geometry 可能是 0，量出来是假的
     win.goto('queue', animate=False)
+    app.processEvents()
+    # 上面截图那几步很慢，期间那个 60ms 的合并定时器早就到了，界面已经被按
+    # 真实队列状态刷回「未运行」。这里重新摆一次，保证下面量到的是运行中的形态。
+    jobs = fake_running_state()
     app.processEvents()
     # 用 isVisibleTo 而不是 isVisible：此刻栈上停的是别的视图，
     # 队列页整体不可见，isVisible 会一律返回 False
