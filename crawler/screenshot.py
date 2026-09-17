@@ -62,12 +62,31 @@ def render(out_dir):
               ('高等数学 上册', '同济大学数学系', 428, 61400000),
               ('大学物理学', '张三慧', 512, 73900000))
 
+    def _touch_pdf(path):
+        """
+        写一个最小可用的 PDF 占位文件。
+
+        书库会按「文件是否存在」把记录标成「文件已丢失」（红字）。截图只是要
+        展示正常观感，不补占位文件的话每本书下面都挂一行红字，看着像 bug。
+        """
+        with open(path, 'wb') as f:
+            f.write(b'%PDF-1.4\n'
+                    b'1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n'
+                    b'2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n'
+                    b'3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 595 842]>>'
+                    b'endobj\n'
+                    b'trailer<</Root 1 0 R>>\n%%EOF\n')
+
     def fill_library():
-        win.library_view.set_records([
-            store.make_record(t, os.path.join(out_dir, '%s.pdf' % t), out_dir,
-                              meta={'title': t, 'author': a}, pages=p, size=s,
-                              chapters=12)
-            for t, a, p, s in SAMPLE])
+        recs = []
+        for t, a, p, s in SAMPLE:
+            path = os.path.join(out_dir, '%s.pdf' % t)
+            if not os.path.exists(path):
+                _touch_pdf(path)
+            recs.append(store.make_record(t, path, out_dir,
+                                          meta={'title': t, 'author': a},
+                                          pages=p, size=s, chapters=12))
+        win.library_view.set_records(recs)
 
     fill_library()
 

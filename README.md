@@ -590,15 +590,22 @@ venv\Scripts\python tools\check_sky_edges.py      # 四条边（需桌面会话�
 `tools/make_hero.py --cand` 出 3 张候选供挑，`--pick N` 把选中的裁成成品。
 `tools/make_covers.py` 负责生成与裁切书库封面（源图在 `tools/art/`，不进包）。
 
-## 示例
+## 界面截图
 
-如果无法直接显示，可以下载下来看，图片存储在 `example` 文件夹下。
+登录页（统一身份认证 / 直接填 Token 两种模式）：
 
-![example1](example/1.png)
+![登录页](example/1.png)
 
-![example2](example/2.png)
+下载队列：粘链接、批量排队、逐本下载，进度和失败原因都在列表里。
 
-![example3](example/3.png)
+![下载队列](example/2.png)
+
+书库：下好的书自动入库，带封面、页数与体积。
+
+![书库](example/3.png)
+
+> 以上截图由 `TsinghuaBookCrawler.exe --screenshot <目录>` 生成，界面里的书名、
+> Token 等均为示意数据。
 
 ## 鸣谢
 
