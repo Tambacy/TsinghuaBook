@@ -29,7 +29,7 @@
 ## 安装
 
 1. 到本仓库的 [Releases](../../releases) 页面下载最新安装包
-   **`清华教参下载器-1.0-安装包.exe`**（约 133 MB）。
+   **`TsinghuaBookCrawler-1.0-Setup.exe`**（约 133 MB）。
 2. 双击运行，一路"下一步"。
 3. 装完从开始菜单或桌面快捷方式启动。
 
@@ -395,7 +395,7 @@ venv\Scripts\pip install -r requirements.txt PyQt6 PyQt6-WebEngine pyinstaller
 :: 1) 打包成 onedir 目录  -> dist\TsinghuaBookCrawler\
 venv\Scripts\pyinstaller --noconfirm --clean TsinghuaBookCrawler.spec
 
-:: 2) 打包成安装包        -> dist\清华教参下载器-1.0-安装包.exe
+:: 2) 打包成安装包        -> dist\TsinghuaBookCrawler-1.0-Setup.exe
 ::    ISCC 的位置看装在哪（非管理员安装会落在 localappdata）：
 ::      C:\Program Files (x86)\Inno Setup 6\ISCC.exe
 ::      %LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe

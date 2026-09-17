@@ -2,7 +2,7 @@
 
 **发布日期**：2026 年 9 月
 **适用平台**：Windows 10 64 位及以上
-**安装包**：`清华教参下载器-1.0-安装包.exe`（约 133 MB，无需管理员权限）
+**安装包**：`TsinghuaBookCrawler-1.0-Setup.exe`（约 133 MB，无需管理员权限）
 
 ---
 
@@ -80,7 +80,7 @@ Windows 桌面应用。你不再需要装 Python、不需要敲命令行、不�
 
 ## 安装
 
-1. 下载 `清华教参下载器-1.0-安装包.exe`。
+1. 下载 `TsinghuaBookCrawler-1.0-Setup.exe`。
 2. 双击，一路"下一步"。**不需要管理员权限**，默认装在
    `%LOCALAPPDATA%\Programs\TsinghuaBookCrawler`。
 3. 从开始菜单或桌面快捷方式启动。
